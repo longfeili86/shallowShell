@@ -1,0 +1,66 @@
+Matlab code 
+
+########################
+BiharmonicHalfdomain.m
+
+solves the biharmonic equation on domain [0,a]*[0,b] 
+
+  D \nabla^4 w(x,y) = p(x,y)
+
+with mixed boundary conditions
+For x> a/2, clamped BC w = w_n = 0
+For x< a/2, Simply Supported BC w = w_nn = 0
+               or free boudary condition
+
+Schematic boundary conditions:
+
+ ———————-**********
+|		  *
+|		  *
+|		  *
+|		  *
+ ———————-**********
+
+
+########################
+Biharmonic.m
+
+solves biharmonic equation on domain [0,a]*[0,b] 
+
+  D \nabla^4 w(x,y) = p(x,y)
+
+with mixed boundary conditions
+Clamped BC : w = w_n = 0 center portion of specific edges
+Free/simply supported BCs imposed on the remainder
+
+Schematic boundary conditions:
+
+ ———————-**********———————-
+|			   |		  
+|			   |		  
+|			   |		  
+|			   |		  
+ ———————-**********———————-
+
+
+
+########################
+NonlinearCoupledSystemDimensionless.m
+
+Thermal buckling bifurcation study of the following coupled
+nonlinear system (dimensionless) with thermal forcing 
+
+ \nabla^4 w(x,y) = [phi,w0] + [phi,w]
+ \nabla^4 phi(x,y) = -0.5[w,w]-[w0,w] - \nabla^2(T)
+
+Clamped BC at center portion of specific edges
+Free/simply supported BCs imposed on the remainder
+
+Schematic boundary conditions:
+
+ ———————-**********———————-
+|			   |		  
+|			   |		  
+|			   |		  
+|			   |		  
+ ———————-**********———————-
