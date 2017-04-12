@@ -36,7 +36,7 @@ switch (caseName)
         fprintf('%sTest the explicit Picard iterations\n',infoPrefix);
         fprintf('%sFinish me...\n',infoPrefix);
         return
-    case 'exPicard'
+    case 'imPicard'
         fprintf('%sTest the semi-implicit Picard iterations\n',infoPrefix);
         fprintf('%sFinish me...\n',infoPrefix);
         return
