@@ -1,22 +1,24 @@
 function runShell(varargin)
 %=========================================================================
-% This is the main interface for running various cases for the shell paper
+% This is the main interface for setting up parameters and running various
+% cases for the shell paper
 % usage:
 % runShell -options
 %=========================================================================
+infoPrefix = '--runShell--: '; % all info displayed by this function includes this prefix
 
 %--------------- default options -----------------
-savePlot=false;
-caseName='biharmonic'; % supported cases:biharmonic,exPicard,imPicard,newton 
+parameters.savePlot=false;
+parameters.caseName='biharmonic'; % supported cases:biharmonic,exPicard,imPicard,newton 
 %---------------------------------------------------
 
 % read command line args
 for i=1:nargin
     line = varargin{i};
     if(strcmp(line,'-savePlot'))
-        savePlot=true;
+        parameters.savePlot=true;
     elseif(strncmp(line,'-case=',6))
-        caseName=line(7:end);
+        parameters.caseName=line(7:end);
     end
     
 %     if(strncmp(line,'-beam=',6))
@@ -28,38 +30,12 @@ for i=1:nargin
 end
 
 
-infoPrefix = '--runShell--: '; % all info displayed by this function includes this prefix
-switch (caseName)
-    case 'biharmonic'
-        fprintf('%sTest the biharmonic solver\n',infoPrefix);
-    case 'exPicard'
-        fprintf('%sTest the explicit Picard iterations\n',infoPrefix);
-        fprintf('%sFinish me...\n',infoPrefix);
-        return
-    case 'imPicard'
-        fprintf('%sTest the semi-implicit Picard iterations\n',infoPrefix);
-        fprintf('%sFinish me...\n',infoPrefix);
-        return
-    case 'newton'
-        fprintf('%sTest the newton iterations (direct solve)\n',infoPrefix);
-        fprintf('%sFinish me...\n',infoPrefix);
-        return
-    otherwise
-        fprintf('%sSupported cases: biharmonic,exPicard,imPicard,newton.\n',infoPrefix);
-        fprintf('%sTerminated.\n',infoPrefix);
-        return
-end
 
-
-figureName='tempFig.eps';
-if(savePlot)
-    fprintf('%splot saved. Filename=%s\n',infoPrefix,figureName);
-    %print('-depsc2',figureName);
-end
+solve(parameters);
 
 
 
-
+fprintf('%sFinished running caseName=%s successfully.\n',infoPrefix,parameters.caseName);
 
 
 end
