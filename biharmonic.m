@@ -1,8 +1,8 @@
 function biharmonic(parameters)
-% this function do all the tests for biharmonic solver
-% We solve:
-%   pde: \nabla^4 w = rhs
-%   bcTypes: 1 simply supported; 2 clamped edge; 3 free edge
+% given parameters, this function solves:
+%   pde: D*s\nabla^4 w = rhs
+%   bcTypes: 0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
+%         0: periodic bc  to do FINISH ME ......
 %         1: w=0, d^2wdn^2=0
 %         2: w=0, dwdn=0
 %         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0
@@ -13,33 +13,44 @@ infoPrefix = '--biharmonic--: '; % all info displayed by this function includes 
 
 
 % parse parameters
-domain=parameters.domain; % rectangle for now [xa,xb,ya,yb]
+domain=[parameters.xa,parameters.xb,parameters.ya,parameters.yb]; % rectangle [xa,xb,ya,yb]
 nu=parameters.nu; % physical parameters (poisson ratio)
 bcType=parameters.bcType;% bcType: 2 clamped edge, 3 free edge
-resolution=parameters.resolution; % resolution of the grid [nx,ny]
-nx=resolution(1);ny=resolution(2);
-rhs=parameters.rhs; % this rhs is defined as a function handle rhs(x,y)
+nx=parameters.nx; % number of grid points in x direction
+ny=parameters.ny; % number of grid points in y direction
 
 isPlot=parameters.isPlot;
 savePlot=parameters.savePlot;
+useLU=parameters.useLU;
+
+rhsFile=parameters.rhsFile;
+
+% physical parameters
+D=parameters.D;
+nu=parameters.nu;
+E=parameters.E;
+h=parameters.h;
 
 % preprossess
+fprintf('%sGetting rhs definition from file: %s.m\n',infoPrefix,rhsFile);
+run(rhsFile);
+
 myGrid = buildGrid(domain,nx,ny);
 Xvec = myGrid.XX(:);%column vector
 Yvec = myGrid.YY(:);%column vector
-RHS = rhs(Xvec,Yvec);%vectorized rhs
+RHS = rhs.w(Xvec,Yvec);%vectorized rhs
 
 hx = myGrid.hx;
 hy = myGrid.hy;
 mtx = getDiffMatrix(nx,ny,hx,hy);
-A = mtx.BiDh;
+A = D*mtx.BiDh;
 
 Index=getIndex(nx,ny);
-A = assignBoundaryConditionsCoefficient(A,Index,mtx,parameter);
-RHS = assignBoundaryConditionsRHS(RHS,Index,parameter);
+A = assignBoundaryConditionsCoefficient(A,Index,mtx,parameters);
+RHS = assignBoundaryConditionsRHS(RHS,Index,parameters);
 
 % we need a cornor condition to remove the singulariy for free bc
-if(bcType==2) 
+if(bcType==3) 
     [A,RHS]=assignCornerConditions(A,RHS,Index);
 end
 
@@ -49,30 +60,49 @@ end
 % There are unused ghost points, we need to remove those points from the A.
 Aused=A(Index.UsedPoints,Index.UsedPoints);
 
-% we use LU decomposition of Aused. This doesn't do much for a single
+% we can use LU decomposition of Aused. This is slower for a single
 % biharmonic solve, but for iterative methods, we can reuse L, U to 
-% to solve the system faster than simply backslash Aused.
-[L,U]=lu(Aused);
-y = L\RHS;
-x = U\y;
+% to solve the biharmonic system faster than simply backslash Aused every time.
+if(useLU)
+    fprintf('%suse LU decomposition\n',infoPrefix);
+    %tic;
+    [L,U]=lu(Aused,0.);
+    %toc;
+    %tic;
+    y = L\RHS(Index.UsedPoints);
+    x = U\y;
+    %toc;
+else
+    %tic;
+    x=Aused\RHS(Index.UsedPoints);
+    %toc;
+end
 W = 0.*RHS; % zero out stuff to store solution
 W(Index.UsedPoints) = x;
 
-
 % postprossess results
 
-setupFigure; % setup figure options, linewidth,fontsize ect.
-useColormapRainbow; % use rainbow colormap
 
-%FontSize
 if (isPlot)
     figure
+    useColormapRainbow; % use rainbow colormap
+    setupFigure; % setup figure options, linewidth,fontsize ect.
+
     Xplot = reshape(Xvec(Index.interiorBoundary),nx,ny);
     Yplot = reshape(Yvec(Index.interiorBoundary),nx,ny);
-    surf(Xplot,Yplot,reshape(U(Index.interiorBoundary),nx,ny));
+    Wplot = reshape(W(Index.interiorBoundary),nx,ny);
+    surf(Xplot,Yplot,Wplot);
+    shading(figOptions.SD);
+    if(figOptions.CT)
+        hold on
+        [~,hh]=contour3(Xplot,Yplot,Wplot);
+        for i=1:numel(hh)
+            set(hh(i),'EdgeColor','k','LineWidth',figOptions.LW)
+        end
+        hold off
+    end   
     title('Solution','FontSize',figOptions.FS)
     set(gca,'FontSize',figOptions.FS)
-    shading(figOptions.SD);
 end
 
 

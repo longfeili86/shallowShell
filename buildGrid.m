@@ -7,10 +7,15 @@ function grid = buildGrid(domain, nx,ny)
 %Output:
 %  grid: object that holds grid information
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 xa = domain(1);
 xb = domain(2);
 ya = domain(3);
 yb = domain(4);
+
+
+assert((xa<xb)&&(ya<yb),'Error: invalid domain. make sure xa<xb and ya<yb\n');
+
 grid.x = linspace(xa,xb,nx);
 grid.y = linspace(ya,yb,ny);
 
