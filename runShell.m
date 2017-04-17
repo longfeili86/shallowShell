@@ -8,6 +8,8 @@ function runShell(varargin)
 infoPrefix = '--runShell--: '; % all info displayed by this function includes this prefix
 
 %--------------- some default options -----------------
+parameters.resultsDir='.'; % directory to save results. By default it's pwd
+parameters.saveDiary=true; % flag to Save Command Window text to file
 parameters.isPlot=true;
 parameters.savePlot=false;
 parameters.useLU=false;
@@ -25,18 +27,26 @@ parameters.ny=10;
 % we use function handle to define rhs: rhs.w(x,y,t),rhs.p(x,y,t) for the W
 % and phi equations
 parameters.rhsFile='rhsFileDefault'; 
+% flag for exact solution. Exact solution (if any) is defined in rhsFile
+% make sure the change this flag when defining an exact solution
+parameters.knownExactSolution=false; 
+
 % physical parameters
-parameters.D=1.;
-parameters.nu=1.;
+parameters.nu=.1; % poisson ratio is ranging from 0.0 to 0.5
 parameters.E=1.;
 parameters.h=1.;
+parameters.D=1.; % D = Eh^3/(12(1-nu^2)), we specify it for now
 %---------------------------------------------------
 
 % read command line args
 for i=1:nargin
     line = varargin{i};
-    if(strcmp(line,'-savePlot'))
+    if(strncmp(line,'-f',3))
+        parameters.resultsDir=line(4:end); 
+    elseif(strcmp(line,'-savePlot'))
         parameters.savePlot=true;
+    elseif(strcmp(line,'-nodiary'))
+        parameters.saveDiary=false;        
     elseif(strcmp(line,'-noplot'))
         parameters.isPlot=false;
     elseif(strcmp(line,'-useLU'))
@@ -70,14 +80,24 @@ for i=1:nargin
     end  
 end
 
+% keep a diary for the run
+if(parameters.saveDiary)
+   diaryFilename=sprintf('%s/diary.txt',parameters.resultsDir);
+   diary(diaryFilename); 
+   diary on;
+   fprintf('%sSave Command Window text to %s\n',infoPrefix,diaryFilename);
+end
 
+fprintf('%sRunning: caseName=%s\n',infoPrefix,parameters.caseName);
+fprintf('%sResults are saved in directory: %s/\n',infoPrefix,parameters.resultsDir);
+
+% save the profile for the solve
 profile on
 solve(parameters);
 pf = profile('info');
-save('profile.mat','pf');
+save(sprintf('%s/profile.mat',parameters.resultsDir),'pf');
 
 
-fprintf('%sFinished running caseName=%s successfully.\n',infoPrefix,parameters.caseName);
-
+fprintf('%sCode exited successfully.\n',infoPrefix);
 
 end

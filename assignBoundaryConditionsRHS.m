@@ -11,10 +11,17 @@ function RHS=assignBoundaryConditionsRHS(RHS,Index,parameter)
 % 
 % by L. Li 07/01/2015
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    RHS(Index.GhostAll) = 0;
 
-    if(parameter.bcType==2) % clamped edge 
+    if(parameter.bcType==1) % simply supported 
         RHS(Index.Boundary) = 0;
-        RHS(Index.GhostAll) = 0;
+        RHS(Index.GhostL1) = 0; 
+        RHS(Index.GhostR1) =  0; 
+        RHS(Index.GhostB1) = 0;    
+        RHS(Index.GhostT1) =  0;
+        RHS(Index.Ghost2) = 0; %extrapolation rhs=0
+    elseif(parameter.bcType==2) % clamped edge 
+        RHS(Index.Boundary) = 0;
         RHS(Index.GhostL1) = 0; 
         RHS(Index.GhostR1) =  0; 
         RHS(Index.GhostB1) = 0;    

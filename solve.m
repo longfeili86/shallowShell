@@ -35,12 +35,6 @@ end
 
 
 
-figureName='tempFig.eps';
-if(savePlot)
-    fprintf('%splot saved. Filename=%s\n',infoPrefix,figureName);
-    %print('-depsc2',figureName);
-end
-
 
 
 
