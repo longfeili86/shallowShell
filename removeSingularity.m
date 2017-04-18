@@ -1,4 +1,7 @@
 function [Aused,RHSused]=removeSingularity(Aused,RHSused,myGrid,Index,addRHS)
+% remove singularity for Free BC
+% --Longfei Li
+
     infoPrefix = '--removeSingularity--: '; % all info displayed by this function includes this prefix
     Xvec = myGrid.XX(:);%column vector
     Yvec = myGrid.YY(:);%column vector

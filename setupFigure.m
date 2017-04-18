@@ -1,4 +1,5 @@
 % setup figure options
+% --Longfei Li
 
 figOptions.FS=20; %fontsize
 figOptions.LW=2;  %lineWidth

@@ -1,10 +1,10 @@
 function solve(parameters)
 % This function do the actual solve for various case with given parameters
+% --Longfei Li
 
 infoPrefix = '--solve--: '; % all info displayed by this function includes this prefix
 
 % simplify names
-savePlot=parameters.savePlot;
 caseName=parameters.caseName;
 
 

@@ -4,6 +4,7 @@ function runShell(varargin)
 % cases for the shell paper
 % usage:
 % runShell -options
+% --Longfei Li
 %=========================================================================
 infoPrefix = '--runShell--: '; % all info displayed by this function includes this prefix
 
@@ -41,7 +42,7 @@ parameters.D=1.; % D = Eh^3/(12(1-nu^2)), we specify it for now
 % read command line args
 for i=1:nargin
     line = varargin{i};
-    if(strncmp(line,'-f',3))
+    if(strncmp(line,'-f=',3))
         parameters.resultsDir=line(4:end); 
     elseif(strcmp(line,'-savePlot'))
         parameters.savePlot=true;
@@ -80,6 +81,12 @@ for i=1:nargin
     end  
 end
 
+% create resultsDir if doesn't exist
+if ~exist(parameters.resultsDir, 'dir')
+  mkdir(parameters.resultsDir);
+  fprintf('%smkdir %s\n',infoPrefix,parameters.resultsDir);
+end
+
 % keep a diary for the run
 if(parameters.saveDiary)
    diaryFilename=sprintf('%s/diary.txt',parameters.resultsDir);
@@ -100,4 +107,7 @@ save(sprintf('%s/profile.mat',parameters.resultsDir),'pf');
 
 fprintf('%sCode exited successfully.\n',infoPrefix);
 
+if(parameters.saveDiary)
+   diary off;
+end
 end

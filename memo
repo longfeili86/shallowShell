@@ -1,6 +1,27 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % memo: 
+% bcTypes: 0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
 
 
+% Shell code usages:
+%1. to run a test:
+runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=<folderName>
+(we can run the code without plot using the option -noplot to save time 
+or to run remotely on the server without forwarding any images. We can view
+the results later locally by using plotSavedResults)
+
+%2. to plot saved results
+plotSavedResults -f=<resultsDir> (optional: -contour -nosave)
+
+%3. to see performance profile
+viewProfile -f=testResults
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+04/18/2017: conv.m is the script to do convergence study automatically.
+
+04/17/2017: add more options to runShell
+runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=testResults
 
 04/13/2017
 runShell -nx=50 -ny=100 -xa=1 -xb=3 -ya=0 -yb=10

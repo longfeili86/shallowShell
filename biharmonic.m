@@ -8,11 +8,14 @@ function biharmonic(parameters)
 %         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0
 %         4: mixed CS to do FINISH ME ......
 %         5: mixed CF to do FINISH ME ......
+% --Longfei Li
 
 infoPrefix = '--biharmonic--: '; % all info displayed by this function includes this prefix
 
 
 % parse parameters
+resultsDir=parameters.resultsDir;
+
 xa=parameters.xa;xb=parameters.xb;ya=parameters.ya;yb=parameters.yb;
 domain=[xa,xb,ya,yb]; % rectangle [xa,xb,ya,yb]
 nu=parameters.nu; % physical parameters (poisson ratio)
@@ -106,27 +109,26 @@ end
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot');
 if(knownExactSolution)
     errPlot=exact(Xplot,Yplot)-Wplot;
+    save(sprintf('%s/results.mat',resultsDir),'errPlot','-append');
 end
+
 
 if (isPlot)
     figure
     mySurf(Xplot,Yplot,Wplot,'Solution');
-    figureName='solution';
     if(savePlot)
-        fprintf('%splot saved. filename=%s\n',infoPrefix,figureName);
-        print('-depsc2',figureName);
+        printPlot(resultsDir,'solution');
     end
 
     % plot error if exact solution is known
     if(knownExactSolution)
         figure 
         mySurf(Xplot,Yplot,errPlot,'Error');
-        figureName='error';
         if(savePlot)
-            fprintf('%splot saved. filename=%s\n',infoPrefix,figureName);
-            print('-depsc2',figureName);
+            printPlot(resultsDir,'error');
         end
     end
 end
