@@ -109,7 +109,8 @@ end
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
-save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot');
+RHSplot=reshape(RHS(Index.interiorBoundary),ny,nx);
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','RHSplot');
 if(knownExactSolution)
     errPlot=exact(Xplot,Yplot)-Wplot;
     save(sprintf('%s/results.mat',resultsDir),'errPlot','-append');
@@ -120,15 +121,20 @@ if (isPlot)
     figure
     mySurf(Xplot,Yplot,Wplot,'Solution');
     if(savePlot)
-        printPlot(resultsDir,'solution');
+        printPlot('solution',resultsDir);
     end
-
+    
+    figure
+    mySurf(Xplot,Yplot,RHSplot,'RHS');
+    if(savePlot)
+        printPlot('RHS',resultsDir);
+    end
     % plot error if exact solution is known
     if(knownExactSolution)
         figure 
         mySurf(Xplot,Yplot,errPlot,'Error');
         if(savePlot)
-            printPlot(resultsDir,'error');
+            printPlot('error',resultsDir);
         end
     end
 end

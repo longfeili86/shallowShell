@@ -27,7 +27,15 @@ end
 figure
 mySurf(Xplot,Yplot,Wplot,'Solution',contour);
 if(savePlot)
-    printPlot(resultsDir,sprintf('solution%s',suffix));
+    printPlot(sprintf('solution%s',suffix),resultsDir);
+end
+
+if(exist('RHSplot','var'))
+    figure
+    mySurf(Xplot,Yplot,RHSplot,'RHS',contour);
+    if(savePlot)
+        printPlot(sprintf('RHS%s',suffix),resultsDir);
+    end
 end
 
 %plot error if exist
@@ -35,7 +43,7 @@ if(exist('errPlot','var'))
     figure
     mySurf(Xplot,Yplot,errPlot,'Error',contour);
     if(savePlot)
-        printPlot(resultsDir,sprintf('error%s',suffix));
+        printPlot(sprintf('error%s',suffix),resultsDir);
     end    
 end
 

@@ -15,10 +15,23 @@ plotSavedResults -f=<resultsDir> (optional: -contour -nosave)
 
 %3. to see performance profile
 viewProfile -f=testResults
+
+%4. to run a convergence study
+convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-04/18/2017: conv.m is the script to do convergence study automatically.
+04/19/2017: to compute convRate:
+convRate -case=biharmonic -test=biharmTrigTest -run
+convRate -case=biharmonic -test=biharmPolyTest -run
+
+
+04/18/2017: we have two exact solutions: trig and poly 
+            (defined in biharmTrigTestRHS.m and  biharmPolyTestRHS.m)
+runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=testResults -rhsFile=biharmPolyTestRHS
+runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=testResults -rhsFile=biharmTrigTestRHS
+
+04/18/2017: convRate.m is the script to do convergence study automatically.
 
 04/17/2017: add more options to runShell
 runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=testResults

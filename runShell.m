@@ -101,6 +101,7 @@ fprintf('%sResults are saved in directory: %s/\n',infoPrefix,parameters.resultsD
 % save the profile for the solve
 profile on
 solve(parameters);
+profile off
 pf = profile('info');
 save(sprintf('%s/profile.mat',parameters.resultsDir),'pf');
 
