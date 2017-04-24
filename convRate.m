@@ -2,7 +2,7 @@ function convRate(varargin)
 %this function does convergence study
 %--------------- some default options -----------------
 % currently available tests: 'biharmPolyTest','biharmTrigTest'; 
-% Usage: convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
+% Usage: convRate -case=<caseName> -test=<testName> -rStart=<int> -rEnd=<int> (optional -run -noplot)
 % -- Longfei Li
 
 %print current time
@@ -13,13 +13,19 @@ testName='biharmTrigTest'; % available tests are now: biharmTrigTest biharmPolyT
 caseName='biharmonic'; % do conv study for biharmonic solver
 isRun=false; % flag to do the computation, otherwise just do the plots from saved data
 isPlot=true;
+rStart=1; % refinement start number
+rEnd=4; % refinement end number
 
 for i=1:nargin
     line = varargin{i};
     if(strncmp(line,'-test=',6))
         testName=line(7:end); 
     elseif(strncmp(line,'-case=',6))
-        caseName=line(7:end);        
+        caseName=line(7:end); 
+    elseif(strncmp(line,'-rStart=',8))
+        rStart=sscanf(line,'-rStart=%i'); 
+    elseif(strncmp(line,'-rEnd=',6))
+        rEnd=sscanf(line,'-rEnd=%i');        
     elseif(strcmp(line,'-run'))
         isRun=true;  
     elseif(strcmp(line,'-noplot'))
@@ -28,21 +34,21 @@ for i=1:nargin
 end
 
 
-rf=2:7; % do conv study on these refinements
+rf=rStart:rEnd; % do conv study on these refinements
 bcNames={'Supported','Clamped','Free'};% avaible bcs
 
 
-gn=@(i) 2.^(rf(i)-1);
+gn=@(i) 2.^(rf(i));
 numGrids=@(i) gn(i).*10;
 resultsDir=@(i,bcType,testName) sprintf('%s%sG%i',testName,bcNames{bcType},gn(i));
 
 % call runShell to do the computation on a serie of refined grids
 if(isRun)    
-    rhsFilename=sprintf('%sRHS',testName);
+    funcDefFilename=sprintf('%sFuncDef',testName);
   
     % define cmd 
-    getCMD = @(i,bcType,testName) sprintf('runShell -case=%s -rhsFile=%s -nx=%i -ny=%i -bcType=%i -noplot -f=%s',...
-        caseName,rhsFilename,numGrids(i),numGrids(i),bcType,resultsDir(i,bcType,testName));
+    getCMD = @(i,bcType,testName) sprintf('runShell -case=%s -funcDefFile=%s -nx=%i -ny=%i -bcType=%i -noplot -f=%s',...
+        caseName,funcDefFilename,numGrids(i),numGrids(i),bcType,resultsDir(i,bcType,testName));
     for bcType=1:3
         for i=1:length(rf)
             cmd=getCMD(i,bcType,testName);

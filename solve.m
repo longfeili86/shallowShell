@@ -10,21 +10,11 @@ caseName=parameters.caseName;
 
 switch (caseName)
     case 'biharmonic'
-        fprintf('%sTest the biharmonic solver\n',infoPrefix);
+        fprintf('%sSolve the biharmonic equation\n',infoPrefix);
         biharmonic(parameters);
-    case 'exPicard'
-        fprintf('%sTest the explicit Picard iterations\n',infoPrefix);
-        %explicitPicardIterations(parameters);
-        fprintf('%sFinish me...\n',infoPrefix);
-        return
-    case 'imPicard'
-        fprintf('%sTest the semi-implicit Picard iterations\n',infoPrefix);
-        %implicitPicardIterations(parameters);
-        fprintf('%sFinish me...\n',infoPrefix);
-        return
-    case 'newton'
-        fprintf('%sTest the newton iterations (direct solve)\n',infoPrefix);
-        %newtonsIterations(parameters);
+    case 'coupledSystem'
+        fprintf('%sSolve the the coupled system\n',infoPrefix);
+        coupledSystem(parameters);
         fprintf('%sFinish me...\n',infoPrefix);
         return
     otherwise

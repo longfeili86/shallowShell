@@ -55,6 +55,10 @@ elseif (bcType==3) % free edge
     % bottom bboundary
     A(Index.GhostB1,:)= diffMtx.Dyy(Index.BoundaryB,:)+nu*diffMtx.Dxx(Index.BoundaryB,:) ; 
     A(Index.GhostB2,:)= diffMtx.Dyyy(Index.BoundaryB,:)+(2-nu)*diffMtx.Dxxy(Index.BoundaryB,:) ;   
+    
+    % corner conditions for free bc
+    A(Index.UsedGhostCorners,:)=0.; % zero out existing coefficients
+    A(Index.UsedGhostCorners,:)=diffMtx.Dxy(Index.Corners,:) ;  
 end
 
 

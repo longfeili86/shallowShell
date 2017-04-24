@@ -11,7 +11,6 @@ for i=1:nargin
 end
 
 load(sprintf('%s/profile.mat',resultsDir));
-profile viewer
-
+profview(0,pf);
 
 end

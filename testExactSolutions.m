@@ -2,8 +2,8 @@
 % exactOption= 1 for trig, 2 for poly
 exactOption=2; 
 isPlot=true;
-contour=true;
-savePlot=true;
+contour=~true;
+savePlot=~true;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if(exactOption==1)
     fprintf('trig exact solution\n');
@@ -50,6 +50,7 @@ end
 Biharm_UU = diff(UU,x,4)+diff(UU,y,4)+2*diff(diff(UU,x,2),y,2);
 UU_x = diff(UU,x,1);
 UU_y = diff(UU,y,1);
+UU_xy = diff(diff(UU,y,1),x,1);
 UU_xx = diff(UU,x,2);
 UU_yy = diff(UU,y,2);
 UU_xxx = diff(UU,x,3);
@@ -60,6 +61,7 @@ UU_yyx = diff(UU_yy,x,1);
 Ue = matlabFunction(UU,'vars',[x,y,xa,ya,xb,yb]);
 Ue_x = matlabFunction(UU_x,'vars',[x,y,xa,ya,xb,yb]);
 Ue_y = matlabFunction(UU_y,'vars',[x,y,xa,ya,xb,yb]);
+Ue_xy = matlabFunction(UU_y,'vars',[x,y,xa,ya,xb,yb]);
 Ue_xx = matlabFunction(UU_xx,'vars',[x,y,xa,ya,xb,yb]);
 Ue_yy = matlabFunction(UU_yy,'vars',[x,y,xa,ya,xb,yb]);
 Ue_xxx = matlabFunction(UU_xxx,'vars',[x,y,xa,ya,xb,yb]);
@@ -113,6 +115,9 @@ figure
 Uplot=Ue_y(Xplot,Yplot,xa,ya,xb,yb);
 mySurf(Xplot,Yplot,Uplot,'Ue_y',contour);
 
+figure
+Uplot=Ue_xy(Xplot,Yplot,xa,ya,xb,yb);
+mySurf(Xplot,Yplot,Uplot,'Ue_{xy}',contour);
 
 figure
 Uplot=Ue_xx(Xplot,Yplot,xa,ya,xb,yb);

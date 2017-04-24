@@ -16,6 +16,9 @@ parameters.savePlot=false;
 parameters.useLU=false;
 parameters.caseName='biharmonic'; % supported cases:biharmonic,exPicard,imPicard,newton 
 parameters.bcType=2; % bcTypes:0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
+% parameters for coupled system
+parameters.isLinear=true; % flag indicate if the coupled system is linear or not
+parameters.solver='fsolve'; % available solvers for the coupled system: 1. fsolve 2. exPicard 3. imPicard 
 % domain=[xa,xb]x[ya,yb]
 parameters.xa=0.;
 parameters.xb=1.;
@@ -24,16 +27,18 @@ parameters.yb=1.;
 % resolution nx by ny
 parameters.nx=10;
 parameters.ny=10;
-% Name of the m file that defines the rhs.
-% we use function handle to define rhs: rhs.w(x,y,t),rhs.p(x,y,t) for the W
-% and phi equations
-parameters.rhsFile='rhsFileDefault'; 
+% Name of the m file that defines given functions:
+% such as the external forcing terms of the W and phi equations: f.phi(x,y), f.w(x,y)
+% and the exact solution (if known): exact.phi(x,y), exact.w(x,y)
+% and the initial shell shape: w0(x,y).
+parameters.funcDefFile='funcDefFileDefault'; 
 % flag for exact solution. Exact solution (if any) is defined in rhsFile
 % make sure the change this flag when defining an exact solution
 parameters.knownExactSolution=false; 
 
 % physical parameters
 parameters.nu=.1; % poisson ratio is ranging from 0.0 to 0.5
+% these are not needed for dimensionless equations
 parameters.E=1.;
 parameters.h=1.;
 parameters.D=1.; % D = Eh^3/(12(1-nu^2)), we specify it for now
@@ -56,6 +61,10 @@ for i=1:nargin
         parameters.caseName=line(7:end);
     elseif(strncmp(line,'-bcType=',8))
         parameters.bcType=sscanf(line,'-bcType=%i');
+    elseif(strcmp(line,'-nonlinear'))
+        parameters.isLinear=false;
+    elseif(strncmp(line,'-solver=',8))
+        parameters.solver=line(9:end);         
     elseif(strncmp(line,'-xa=',4))
         parameters.xa=sscanf(line,'-xa=%e');
     elseif(strncmp(line,'-xb=',4))
@@ -68,8 +77,8 @@ for i=1:nargin
         parameters.nx=sscanf(line,'-nx=%i');  
     elseif(strncmp(line,'-ny=',4))
         parameters.ny=sscanf(line,'-ny=%i');
-    elseif(strncmp(line,'-rhsFile=',9))
-        parameters.rhsFile=sscanf(line,'-rhsFile=%s');
+    elseif(strncmp(line,'-funcDefFile=',12))
+        parameters.funcDefFile=sscanf(line,'-funcDefFile=%s');
     elseif(strncmp(line,'-D=',3))
         parameters.D=sscanf(line,'-D=%e');      
     elseif(strncmp(line,'-nu=',4))
@@ -99,7 +108,7 @@ fprintf('%sRunning: caseName=%s\n',infoPrefix,parameters.caseName);
 fprintf('%sResults are saved in directory: %s/\n',infoPrefix,parameters.resultsDir);
 
 % save the profile for the solve
-profile on
+profile on %-history
 solve(parameters);
 profile off
 pf = profile('info');

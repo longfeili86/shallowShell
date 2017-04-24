@@ -1,16 +1,18 @@
-function biharmonic(parameters)
-% given parameters, this function solves the harmonic equation:
-%   pde: \nabla^4 w = rhs
+function coupledSystem(parameters)
+% given parameters, this function solves the coupled system:
+%   pde:  \nabla^4 phi = -1/2 L[w,w]*lambda - L[w0,w] -f.phi
+%         \nabla^4 w   = L[w,phi]*lambda + L[w0,phi] + f.w
+%   (Note: for linear case: lambda=0, for nonlinear case: lambda=1)
 %   bcTypes: 0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
 %         0: periodic bc  to do FINISH ME ......
-%         1: w=0, d^2wdn^2=0
-%         2: w=0, dwdn=0
-%         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0
+%         1: w=0, d^2wdn^2=0, phi=0, d^2phidn^2=0,
+%         2: w=0, dwdn=0,  phi=0, dphidn=0    
+%         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0, phi=0, dphidn=0 
 %         4: mixed CS to do FINISH ME ......
 %         5: mixed CF to do FINISH ME ......
 % --Longfei Li
 
-infoPrefix = '--biharmonic--: '; % all info displayed by this function includes this prefix
+infoPrefix = '--coupledSystem--: '; % all info displayed by this function includes this prefix
 
 
 % parse parameters
@@ -27,6 +29,9 @@ isPlot=parameters.isPlot;
 savePlot=parameters.savePlot;
 useLU=parameters.useLU;
 
+isLinear=parameters.isLinear;
+solver=parameters.solver;
+
 funcDefFile=parameters.funcDefFile;
 knownExactSolution=parameters.knownExactSolution;
 
@@ -41,7 +46,6 @@ Yvec = myGrid.YY(:);%column vector
 hx = myGrid.hx;
 hy = myGrid.hy;
 mtx = getDiffMatrix(nx,ny,hx,hy);
-A = mtx.BiDh;
 
 % define index
 Index=getIndex(nx,ny);
@@ -49,20 +53,17 @@ Index=getIndex(nx,ny);
 % define given functions
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);
 run(funcDefFile);
-RHS = f.w(Xvec,Yvec);%vectorized rhs
+
+% set up equations
+A=setupMatrix(mtx);
 
 
-% solve
 
 % assign bc
 A = assignBoundaryConditionsCoefficient(A,Index,mtx,parameters);
 RHS = assignBoundaryConditionsRHS(RHS,Index,parameters);
-
-% 20170424: removed assignCornerConditions.
-% assignBoundaryConditionsCoefficient and assignBoundaryConditionsRHS takes
-% care of the corner conditions.
 % we need cornor condition for some bc
-% [A,RHS]=assignCornerConditions(A,RHS,Index,mtx,bcType); 
+[A,RHS]=assignCornerConditions(A,RHS,Index,mtx,bcType);
 
 
 
@@ -76,7 +77,7 @@ RHSused=RHS(Index.UsedPoints);
 if(bcType==3)
     addRHS=0.*RHS;
     if(knownExactSolution)
-        addRHS=exact.w(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
+        addRHS=exact(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
     end
     [Aused,RHSused]=removeSingularity(Aused,RHSused,myGrid,Index,addRHS);
 end
@@ -116,7 +117,7 @@ Wplot = reshape(W(Index.interiorBoundary),ny,nx);
 RHSplot=reshape(RHS(Index.interiorBoundary),ny,nx);
 save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','RHSplot');
 if(knownExactSolution)
-    errPlot=exact.w(Xplot,Yplot)-Wplot;
+    errPlot=exact(Xplot,Yplot)-Wplot;
     save(sprintf('%s/results.mat',resultsDir),'errPlot','-append');
 end
 

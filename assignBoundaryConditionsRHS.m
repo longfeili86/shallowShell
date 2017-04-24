@@ -41,6 +41,8 @@ function RHS=assignBoundaryConditionsRHS(RHS,Index,parameter)
         %bottom boundary   
         RHS(Index.GhostB1)=0;
         RHS(Index.GhostB2)=0;
+        %corner conditions for free bc
+        RHS(Index.UsedGhostCorners)=0.;
     end
 
 

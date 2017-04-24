@@ -9,7 +9,7 @@ function [Aused,RHSused]=removeSingularity(Aused,RHSused,myGrid,Index,addRHS)
     b = Yvec(Index.UsedPoints);
     c = ones(length(Index.UsedPoints),1);  
     Q=([a,b,c]); % right kernal of Aused
-    P=([a,b,c]); %integral operator for [int(xW),int(yW),int(W)]
+    P=([a,b,c]); % sum of [(xW),(yW),(W)]
     R=P'*addRHS;
     fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));
     RHSused=[RHSused;R];
