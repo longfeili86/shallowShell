@@ -35,6 +35,16 @@ solver=parameters.solver;
 funcDefFile=parameters.funcDefFile;
 knownExactSolution=parameters.knownExactSolution;
 
+
+% print some information
+sysInfo='nonlinear';
+if(isLinear)
+    sysInfo='linear';
+end
+fprintf('%sThe coupled system is %s\n',infoPrefix,sysInfo);
+fprintf('%sUsing solver: %s\n',infoPrefix,solver);
+
+
 % preprocess
 
 % define grid
@@ -52,97 +62,51 @@ Index=getIndex(nx,ny);
 
 % define given functions
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);
-run(funcDefFile);
+run(funcDefFile); % f.w(x,y), f.phi(x,y) and w0(x,y) are defined here
+F.phi=f.phi(Xvec,Yvec);
+F.w=f.w(Xvec,Yvec);
+W0=w0(Xvec,Yvec);
 
-% set up equations
-A=setupMatrix(mtx);
+%initial guess is (W0,PHI0)
+PHI0=0.*W0;
+
+% setup equations
+Aphi=mtx.BiDh;
+Aw = mtx.BiDh;
+%%%%%NOTE NOT WORKING FOR FREE BC FOR NOW!!! FINISH ME %%%%%%%%%%%%%%%
+Aphi = assignBoundaryConditionsCoefficient(Aphi,Index,mtx,parameters);
+Aw = assignBoundaryConditionsCoefficient(Aw,Index,mtx,parameters); 
+%%%%%NOTE NOT WORKING FOR FREE BC FOR NOW!!! FINISH ME %%%%%%%%%%%%%%%
+
+% bc for RHSs are already implemented in side of getRHS functions
+% the RHSs are only for the Index.UsedPoints
+RHSphi=@(w,phi) getRHS_phiEqn(w,phi,F.phi,W0,mtx,parameters,Index);
+RHSw=@(w,phi)   getRHS_wEqn(w,phi,F.w,W0,mtx,parameters,Index);
 
 
+% build problem for fsolve
+nUsed=(nx+4)*(ny+4);
+problem.options = optimoptions('fsolve','Display','iter','Algorithm', 'trust-region-dogleg');
+problem.objective = @(x) [Aphi*x(1:nUsed)-RHSphi(x(1:nUsed),x(nUsed+1:end));Aw*x(nUsed+1:end)-RHSw(x(1:nUsed),x(nUsed+1:end))];
+problem.x0 = [PHI0;W0];
+problem.solver = 'fsolve';
+[x,fval,exitflag,output] = fsolve(problem);
 
-% assign bc
-A = assignBoundaryConditionsCoefficient(A,Index,mtx,parameters);
-RHS = assignBoundaryConditionsRHS(RHS,Index,parameters);
-% we need cornor condition for some bc
-[A,RHS]=assignCornerConditions(A,RHS,Index,mtx,bcType);
-
-
-
-% We might need condition number, eig values ect. of the matrix.
-% There are unused ghost points, we need to remove those points from the A.
-Aused=A(Index.UsedPoints,Index.UsedPoints);
-RHSused=RHS(Index.UsedPoints);
-
-% for Free bc, the system is singular. We use lagrange multiplier method to
-% remove sigularity:
-if(bcType==3)
-    addRHS=0.*RHS;
-    if(knownExactSolution)
-        addRHS=exact(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
-    end
-    [Aused,RHSused]=removeSingularity(Aused,RHSused,myGrid,Index,addRHS);
-end
-
-% we can use LU decomposition of Aused. This is slower for a single
-% biharmonic solve, but for iterative methods, we can reuse L, U to 
-% to solve the biharmonic system faster than simply backslash Aused every time.
-if(useLU)
-    fprintf('%suse LU decomposition\n',infoPrefix);
-    %tic;
-    [L,U]=lu(Aused,0.);
-    %toc;
-    %tic;
-    y = L\RHSused;
-    x = U\y;
-    %toc;
-else
-    %tic;
-    x=Aused\RHSused;
-    %toc;
-end
-W = 0.*RHS; % zero out stuff to store solution
-if(bcType==3)
-    W(Index.UsedPoints) = x(1:end-3);
-    lambda=x(end-2:end);
-    fprintf('%sFree BC additional variables: lambda1=%e, lambda2=%e, lambda3=%e\n',...
-        infoPrefix,lambda(1),lambda(2),lambda(3));
-else
-    W(Index.UsedPoints) = x;
-end
+PHI =x(1:nUsed); 
+W =  x(nUsed+1:end); 
 
 
 % postprocess results
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
-RHSplot=reshape(RHS(Index.interiorBoundary),ny,nx);
-save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','RHSplot');
-if(knownExactSolution)
-    errPlot=exact(Xplot,Yplot)-Wplot;
-    save(sprintf('%s/results.mat',resultsDir),'errPlot','-append');
-end
+PHIplot = reshape(PHI(Index.interiorBoundary),ny,nx);
 
+figure
+mySurf(Xplot,Yplot,Wplot,'w');
 
-if (isPlot)
-    figure
-    mySurf(Xplot,Yplot,Wplot,'Solution');
-    if(savePlot)
-        printPlot('solution',resultsDir);
-    end
-    
-    figure
-    mySurf(Xplot,Yplot,RHSplot,'RHS');
-    if(savePlot)
-        printPlot('RHS',resultsDir);
-    end
-    % plot error if exact solution is known
-    if(knownExactSolution)
-        figure 
-        mySurf(Xplot,Yplot,errPlot,'Error');
-        if(savePlot)
-            printPlot('error',resultsDir);
-        end
-    end
-end
+figure
+mySurf(Xplot,Yplot,PHIplot,'\phi');
 
 
 end

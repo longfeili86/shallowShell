@@ -30,11 +30,11 @@ if(savePlot)
     printPlot(sprintf('solution%s',suffix),resultsDir);
 end
 
-if(exist('RHSplot','var'))
+if(exist('Fplot','var'))
     figure
-    mySurf(Xplot,Yplot,RHSplot,'RHS',contour);
+    mySurf(Xplot,Yplot,Fplot,'Forcing',contour);
     if(savePlot)
-        printPlot(sprintf('RHS%s',suffix),resultsDir);
+        printPlot(sprintf('forcing%s',suffix),resultsDir);
     end
 end
 

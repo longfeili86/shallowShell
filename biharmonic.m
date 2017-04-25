@@ -41,7 +41,6 @@ Yvec = myGrid.YY(:);%column vector
 hx = myGrid.hx;
 hy = myGrid.hy;
 mtx = getDiffMatrix(nx,ny,hx,hy);
-A = mtx.BiDh;
 
 % define index
 Index=getIndex(nx,ny);
@@ -49,10 +48,12 @@ Index=getIndex(nx,ny);
 % define given functions
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);
 run(funcDefFile);
-RHS = f.w(Xvec,Yvec);%vectorized rhs
+F = f.w(Xvec,Yvec); %vectorized forcing
 
 
-% solve
+% setup equations
+A = mtx.BiDh;
+RHS=F;
 
 % assign bc
 A = assignBoundaryConditionsCoefficient(A,Index,mtx,parameters);
@@ -113,8 +114,8 @@ end
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
-RHSplot=reshape(RHS(Index.interiorBoundary),ny,nx);
-save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','RHSplot');
+Fplot=reshape(F(Index.interiorBoundary),ny,nx);
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','Fplot');
 if(knownExactSolution)
     errPlot=exact.w(Xplot,Yplot)-Wplot;
     save(sprintf('%s/results.mat',resultsDir),'errPlot','-append');
@@ -129,9 +130,9 @@ if (isPlot)
     end
     
     figure
-    mySurf(Xplot,Yplot,RHSplot,'RHS');
+    mySurf(Xplot,Yplot,Fplot,'Forcing');
     if(savePlot)
-        printPlot('RHS',resultsDir);
+        printPlot('forcing',resultsDir);
     end
     % plot error if exact solution is known
     if(knownExactSolution)

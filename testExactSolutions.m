@@ -7,11 +7,11 @@ savePlot=~true;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if(exactOption==1)
     fprintf('trig exact solution\n');
-    rhsFigName='exactRHStrig';
+    forcingFigName='exactForcingtrig';
     exactFigName='exactSolutionTrig';  
 elseif(exactOption==2)
     fprintf('poly exact solution\n');
-    rhsFigName='exactRHSpoly';  
+    forcingFigName='exactForcingpoly';  
     exactFigName='exactSolutionPoly';  
 else
    fprintf('exactOption = 1 for trig; 2 for poly. No other values are valid\n');
@@ -19,7 +19,7 @@ else
 end
 
 if(contour)
-   rhsFigName=sprintf('%sContour',rhsFigName);
+   forcingFigName=sprintf('%sContour',forcingFigName);
    exactFigName=sprintf('%sContour',exactFigName); 
 end
 
@@ -95,9 +95,9 @@ rhsf=@(x,y) Biharm_Ue(x,y,xa,ya,xb,yb);
 if(isPlot)
 figure
 Uplot=Biharm_Ue(Xplot,Yplot,xa,ya,xb,yb);
-mySurf(Xplot,Yplot,Uplot,'RHS',contour);
+mySurf(Xplot,Yplot,Uplot,'Forcing',contour);
 if(savePlot)
-    printPlot(rhsFigName);
+    printPlot(forcingFigName);
 end
 
 figure

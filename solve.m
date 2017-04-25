@@ -15,8 +15,6 @@ switch (caseName)
     case 'coupledSystem'
         fprintf('%sSolve the the coupled system\n',infoPrefix);
         coupledSystem(parameters);
-        fprintf('%sFinish me...\n',infoPrefix);
-        return
     otherwise
         fprintf('%sSupported cases: biharmonic,exPicard,imPicard,newton.\n',infoPrefix);
         fprintf('%sTerminated.\n',infoPrefix);

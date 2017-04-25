@@ -21,6 +21,11 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+04/24/2017: coupled system:
+runShell -case=coupledSystem -nx=20 -ny=20 -bcType=1  -f=testResults
+
+
+
 04/20/2017: created a perl script to do batchRun.pl using multithread.
 now we can use batchRun.pl to do all the runs in multithreads:
 
@@ -33,8 +38,8 @@ batchRun.pl > batchRun.log
 
 04/19/2017: to compute convRate:
 (to run without plot):
-convRate -case=biharmonic -test=biharmTrigTest -run -noplot -rStart=1 -rEnd=7 
-convRate -case=biharmonic -test=biharmPolyTest -run  -noplot -rStart=1 -rEnd=7
+convRate -case=biharmonic -test=biharmTrigTest -run -noplot -rStart=1 -rEnd=6 
+convRate -case=biharmonic -test=biharmPolyTest -run  -noplot -rStart=1 -rEnd=6
 
 (to plot without run)
 convRate -case=biharmonic -test=biharmTrigTest -rStart=1 -rEnd=6
