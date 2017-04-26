@@ -32,17 +32,13 @@ useLU=parameters.useLU;
 isLinear=parameters.isLinear;
 solver=parameters.solver;
 
+maxIter=parameters.maxIter;
+tol=parameters.tol;
+
 funcDefFile=parameters.funcDefFile;
 knownExactSolution=parameters.knownExactSolution;
 
 
-% print some information
-sysInfo='nonlinear';
-if(isLinear)
-    sysInfo='linear';
-end
-fprintf('%sThe coupled system is %s\n',infoPrefix,sysInfo);
-fprintf('%sUsing solver: %s\n',infoPrefix,solver);
 
 
 % preprocess
@@ -63,37 +59,126 @@ Index=getIndex(nx,ny);
 % define given functions
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);
 run(funcDefFile); % f.w(x,y), f.phi(x,y) and w0(x,y) are defined here
-F.phi=f.phi(Xvec,Yvec);
-F.w=f.w(Xvec,Yvec);
+Fphi=f.phi(Xvec,Yvec);
+Fw=f.w(Xvec,Yvec);
 W0=w0(Xvec,Yvec);
+PHI0=0.*W0; % store initial guess for phi
 
-%initial guess is (W0,PHI0)
-PHI0=0.*W0;
+% print some information before solve
+sysInfo='nonlinear';
+if(isLinear)
+    sysInfo='linear';
+end
+fprintf('%sThe coupled system is %s\n',infoPrefix,sysInfo);
+fprintf('%sbcType:  %i\n',infoPrefix,bcType);
+fprintf('%sUsing solver: %s\n',infoPrefix,solver);
+
 
 % setup equations
-Aphi=mtx.BiDh;
-Aw = mtx.BiDh;
-%%%%%NOTE NOT WORKING FOR FREE BC FOR NOW!!! FINISH ME %%%%%%%%%%%%%%%
-Aphi = assignBoundaryConditionsCoefficient(Aphi,Index,mtx,parameters);
-Aw = assignBoundaryConditionsCoefficient(Aw,Index,mtx,parameters); 
-%%%%%NOTE NOT WORKING FOR FREE BC FOR NOW!!! FINISH ME %%%%%%%%%%%%%%%
+% bc for MTXs are already implemented in side of getMTX functions
+Aphi = getMTX_phiEqn(Index,mtx,parameters);
+Aw = getMTX_wEqn(Index,mtx,parameters,PHI0);
+R=zeros(3,1); % additional RHS for free bc
+if(bcType==3)
+    % A is the augmented matrix and Q is the kernal
+    [Aw,Q]=removeMatrixSingularity(Aw,myGrid,Index);
+    if(knownExactSolution)
+        addRHS = 0.*Xvec;
+        addRHS(Index.UsedPoints)=exact.w(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
+        R=Q'*addRHS;
+    end
+    fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));
+end
 
 % bc for RHSs are already implemented in side of getRHS functions
-% the RHSs are only for the Index.UsedPoints
-RHSphi=@(w,phi) getRHS_phiEqn(w,phi,F.phi,W0,mtx,parameters,Index);
-RHSw=@(w,phi)   getRHS_wEqn(w,phi,F.w,W0,mtx,parameters,Index);
+RHSphi=@(w,phi) getRHS_phiEqn(w,phi,Fphi,W0,mtx,parameters,Index);
+RHSw=@(w,phi)   getRHS_wEqn(w,phi,Fw,W0,mtx,parameters,Index);
 
+%initial guess is (W0,PHI0)
+PHI0= Aphi\RHSphi(W0,PHI0); %use 1st step of picard iteration as PHI0
 
-% build problem for fsolve
-nUsed=(nx+4)*(ny+4);
-problem.options = optimoptions('fsolve','Display','iter','Algorithm', 'trust-region-dogleg');
-problem.objective = @(x) [Aphi*x(1:nUsed)-RHSphi(x(1:nUsed),x(nUsed+1:end));Aw*x(nUsed+1:end)-RHSw(x(1:nUsed),x(nUsed+1:end))];
-problem.x0 = [PHI0;W0];
-problem.solver = 'fsolve';
-[x,fval,exitflag,output] = fsolve(problem);
+% solve the coupled system
+n=length(Xvec); % number of unknowns
+Nphi=1:n; % phi solutions
+Nw=n+1:2*n;  % w solutions
+Nlambda=2*n+1:2*n+3; % lambda solutions
+if(strcmp(solver,'fsolve'))
+    problem.options = optimoptions('fsolve','Display','iter-detailed',...
+        'Algorithm', 'trust-region-dogleg','TolX',tol,'TolFun',tol);
+    problem.objective = @(x) getFSolveFunction(x,Aphi,Aw,RHSphi,RHSw,bcType,R);
+    problem.x0 = getFSolveInitialGuess(W0,PHI0,bcType);
+    problem.solver = 'fsolve';
+    [x,fval,exitflag,output] = fsolve(problem);
+    PHI =x(Nphi); 
+    W =  x(Nw);
+    if(bcType==3)
+        lambda = x(Nlambda); 
+    end
+elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
+    %x=psolve(); % picard solve
+    isConverged=false;
+    numberOfLevels=3;
+    nadd=0; % number of additional variables
+    if(bcType==3)
+        nadd=3;
+    end
+    x=zeros(2*n+nadd,numberOfLevels); 
+    step=0;
+    % do this to avoid copying data for new stage
+    [prev,cur,new] = step2IterLevels(step);
+    x(Nphi,cur)=PHI0;
+    x(Nw,cur)=W0;
+    while(~isConverged && step<=maxIter)
+        step=step+1;
+        [prev,cur,new] = step2IterLevels(step);
+        x(Nphi,new)=Aphi\RHSphi(x(Nw,cur),x(Nphi,cur));
+        Aw=getMTX_wEqn(Index,mtx,parameters,x(Nphi,new));
+        Rw=RHSw(x(Nw,cur),x(Nphi,new));
+        if(bcType==3)
+            % A is the augmented matrix and Q is the kernal
+            quiet=true;
+            [Aw,~]=removeMatrixSingularity(Aw,myGrid,Index,quiet); 
+            Rw=[Rw;R]; % additional rhs of w equation
+        end
+        xTemp=Aw\Rw;
+        x(Nw,new)=xTemp(1:n);
+        if(bcType==3)
+           x(Nlambda,new) = x(n+1:n+3); 
+        end
+        res=sqrt(sum((x([Nphi,Nw],new)-x([Nphi,Nw],cur)).^2));
+        fprintf('%sStep=%i, res=%e\n',infoPrefix,step,res);
+        if(res<tol)
+           isConverged=true; 
+        end
 
-PHI =x(1:nUsed); 
-W =  x(nUsed+1:end); 
+    end
+    if(~isConverged)
+        fprintf('%sIteration does not converge after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter);
+        fprintf('%sres=%e, tol=%e\n',infoPrefix,res,tol);
+        return
+    else
+        fprintf('%sIteration converges after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter);
+        fprintf('%sres=%e, tol=%e\n',infoPrefix,res,tol);
+    end
+    % parse solutions
+    PHI=x(Nphi,new);
+    W=x(Nw,new);
+    if(bcType==3)
+        lambda=x(Nlambda,new);
+        fprintf('%sFree BC additional variables: lambda1=%e, lambda2=%e, lambda3=%e\n',...
+            infoPrefix,lambda(1),lambda(2),lambda(3));
+    end
+else
+    fprintf('%sError unknown solver: %s\n',infoPrefix,solver);
+    return
+end
+
+% check the solutions
+
+for i=1:length(Index.UnusedGhostCorners)
+    fprintf('%s w Solution at unused point %i: %e\n',infoPrefix,i,W(Index.UnusedGhostCorners(i)));
+    fprintf('%s phi Solution at unused point %i: %e\n',infoPrefix,i,PHI(Index.UnusedGhostCorners(i)));
+end
 
 
 % postprocess results
@@ -101,12 +186,57 @@ Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
 PHIplot = reshape(PHI(Index.interiorBoundary),ny,nx);
+Fwplot=reshape(Fw(Index.interiorBoundary),ny,nx);
+Fphiplot=reshape(Fphi(Index.interiorBoundary),ny,nx);
 
-figure
-mySurf(Xplot,Yplot,Wplot,'w');
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','PHIplot','Fwplot','Fphiplot');
+if(knownExactSolution)
+    WerrPlot=exact.w(Xplot,Yplot)-Wplot;
+    PHIerrPlot=exact.phi(Xplot,Yplot)-PHIplot;
+    save(sprintf('%s/results.mat',resultsDir),'WerrPlot','PHIerrPlot','-append');
+end
 
-figure
-mySurf(Xplot,Yplot,PHIplot,'\phi');
+
+if (isPlot)
+    figure
+    mySurf(Xplot,Yplot,Wplot,'$w$');
+    if(savePlot)
+        printPlot('wSolution',resultsDir);
+    end
+    
+    figure
+    mySurf(Xplot,Yplot,PHIplot,'$\phi$');
+    if(savePlot)
+        printPlot('phiSolution',resultsDir);
+    end   
+    
+    figure
+    mySurf(Xplot,Yplot,Fwplot,'$f_w$');
+    if(savePlot)
+        printPlot('wForcing',resultsDir);
+    end
+    
+    figure
+    mySurf(Xplot,Yplot,Fphiplot,'$f_{\phi}$');
+    if(savePlot)
+        printPlot('phiForcing',resultsDir);
+    end
+    
+    % plot error if exact solution is known
+    if(knownExactSolution)
+        figure 
+        mySurf(Xplot,Yplot,WerrPlot,'$E(w)$');
+        if(savePlot)
+            printPlot('wError',resultsDir);
+        end
+        figure 
+        mySurf(Xplot,Yplot,PHIerrPlot,'$E(\phi)$');
+        if(savePlot)
+            printPlot('phiError',resultsDir);
+        end
+    end
+end
+
 
 
 end

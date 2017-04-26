@@ -23,7 +23,7 @@ if(figOptions.CT)
 end   
 xlabel('x','FontSize',figOptions.FS);
 ylabel('y','FontSize',figOptions.FS)
-title(titleMessage,'FontSize',figOptions.FS);
+title(titleMessage,'FontSize',figOptions.FS,'Interpreter','Latex');
 if(contour)
     view(2)
     colorbar

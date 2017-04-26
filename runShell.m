@@ -36,6 +36,10 @@ parameters.funcDefFile='funcDefFileDefault';
 % make sure the change this flag when defining an exact solution
 parameters.knownExactSolution=false; 
 
+%iteration parameters
+parameters.maxIter=500;
+parameters.tol=1e-6;
+
 % physical parameters
 parameters.nu=.1; % poisson ratio is ranging from 0.0 to 0.5
 % these are not needed for dimensionless equations
@@ -79,6 +83,10 @@ for i=1:nargin
         parameters.ny=sscanf(line,'-ny=%i');
     elseif(strncmp(line,'-funcDefFile=',12))
         parameters.funcDefFile=sscanf(line,'-funcDefFile=%s');
+    elseif(strncmp(line,'-maxIter=',9))
+        parameters.maxIter=sscanf(line,'-maxIter=%i');
+    elseif(strncmp(line,'-tol=',5))
+        parameters.tol=sscanf(line,'-tol=%e'); 
     elseif(strncmp(line,'-D=',3))
         parameters.D=sscanf(line,'-D=%e');      
     elseif(strncmp(line,'-nu=',4))

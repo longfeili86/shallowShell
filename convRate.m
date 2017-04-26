@@ -64,8 +64,8 @@ if(isPlot)
     for bcType=1:3
         for i=1:length(rf)
             load(sprintf('%s/results.mat',resultsDir(i,bcType,testName)));
-            ErrorL2.(bcNames{bcType})(i)=norm(errPlot(:),2)/sqrt(length(errPlot(:)));
-            ErrorLmax.(bcNames{bcType})(i)=max(abs(errPlot(:)));
+            ErrorL2.(bcNames{bcType})(i)=norm(WerrPlot(:),2)/sqrt(length(WerrPlot(:)));
+            ErrorLmax.(bcNames{bcType})(i)=max(abs(WerrPlot(:)));
         end
     end  
 

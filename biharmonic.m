@@ -48,12 +48,12 @@ Index=getIndex(nx,ny);
 % define given functions
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);
 run(funcDefFile);
-F = f.w(Xvec,Yvec); %vectorized forcing
+Fw = f.w(Xvec,Yvec); %vectorized forcing
 
 
 % setup equations
 A = mtx.BiDh;
-RHS=F;
+RHS=Fw;
 
 % assign bc
 A = assignBoundaryConditionsCoefficient(A,Index,mtx,parameters);
@@ -66,21 +66,28 @@ RHS = assignBoundaryConditionsRHS(RHS,Index,parameters);
 % [A,RHS]=assignCornerConditions(A,RHS,Index,mtx,bcType); 
 
 
-
+% 20170425: removed Aused, and RHSused. We treat the equations at unused
+% points as Identity and the RHS as 0. These are done in
+% assignBoundaryConditions..
 % We might need condition number, eig values ect. of the matrix.
 % There are unused ghost points, we need to remove those points from the A.
-Aused=A(Index.UsedPoints,Index.UsedPoints);
-RHSused=RHS(Index.UsedPoints);
+%Aused=A(Index.UsedPoints,Index.UsedPoints);
+%RHSused=RHS(Index.UsedPoints);
 
 % for Free bc, the system is singular. We use lagrange multiplier method to
 % remove sigularity:
 if(bcType==3)
-    addRHS=0.*RHS;
+    % A is the augmented matrix and Q is the kernal
+    [A,Q]=removeMatrixSingularity(A,myGrid,Index); 
+    R=zeros(3,1); % additional rhs for the augemented system
     if(knownExactSolution)
-        addRHS=exact.w(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
+        addRHS = 0.*RHS;
+        addRHS(Index.UsedPoints)=exact.w(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
+        R=Q'*addRHS;
     end
-    [Aused,RHSused]=removeSingularity(Aused,RHSused,myGrid,Index,addRHS);
-end
+    fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));
+    RHS=[RHS;R]; % augmented RHS
+end  
 
 % we can use LU decomposition of Aused. This is slower for a single
 % biharmonic solve, but for iterative methods, we can reuse L, U to 
@@ -88,58 +95,62 @@ end
 if(useLU)
     fprintf('%suse LU decomposition\n',infoPrefix);
     %tic;
-    [L,U]=lu(Aused,0.);
+    [L,U]=lu(A,0.);
     %toc;
     %tic;
-    y = L\RHSused;
+    y = L\RHS;
     x = U\y;
     %toc;
 else
     %tic;
-    x=Aused\RHSused;
+    x=A\RHS;
     %toc;
 end
-W = 0.*RHS; % zero out stuff to store solution
+n=length(Xvec); % number of nodes
+W = x(1:n); 
 if(bcType==3)
-    W(Index.UsedPoints) = x(1:end-3);
-    lambda=x(end-2:end);
+    lambda=x(n+1:n+3);
     fprintf('%sFree BC additional variables: lambda1=%e, lambda2=%e, lambda3=%e\n',...
         infoPrefix,lambda(1),lambda(2),lambda(3));
-else
-    W(Index.UsedPoints) = x;
 end
+
+% check the solutions at unused points
+for i=1:length(Index.UnusedGhostCorners)
+    fprintf('%sSolution at unused point %i: %e\n',infoPrefix,i,W(Index.UnusedGhostCorners(i)));
+end
+
 
 
 % postprocess results
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
-Fplot=reshape(F(Index.interiorBoundary),ny,nx);
-save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','Fplot');
+Fwplot=reshape(Fw(Index.interiorBoundary),ny,nx);
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','Fwplot');
 if(knownExactSolution)
-    errPlot=exact.w(Xplot,Yplot)-Wplot;
-    save(sprintf('%s/results.mat',resultsDir),'errPlot','-append');
+    WerrPlot=exact.w(Xplot,Yplot)-Wplot;
+    save(sprintf('%s/results.mat',resultsDir),'WerrPlot','-append');
 end
 
 
 if (isPlot)
     figure
-    mySurf(Xplot,Yplot,Wplot,'Solution');
+    mySurf(Xplot,Yplot,Wplot,'$w$');
     if(savePlot)
-        printPlot('solution',resultsDir);
+        printPlot('wSolution',resultsDir);
     end
     
     figure
-    mySurf(Xplot,Yplot,Fplot,'Forcing');
+    mySurf(Xplot,Yplot,Fwplot,'$f_w$');
     if(savePlot)
-        printPlot('forcing',resultsDir);
+        printPlot('wForcing',resultsDir);
     end
     % plot error if exact solution is known
     if(knownExactSolution)
         figure 
-        mySurf(Xplot,Yplot,errPlot,'Error');
+        mySurf(Xplot,Yplot,WerrPlot,'$E(w)$');
         if(savePlot)
-            printPlot('error',resultsDir);
+            printPlot('wError',resultsDir);
         end
     end
 end

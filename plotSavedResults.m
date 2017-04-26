@@ -25,28 +25,51 @@ if(contour)
 end
 
 figure
-mySurf(Xplot,Yplot,Wplot,'Solution',contour);
+mySurf(Xplot,Yplot,Wplot,'$w$',contour);
 if(savePlot)
-    printPlot(sprintf('solution%s',suffix),resultsDir);
+    printPlot(sprintf('wSolution%s',suffix),resultsDir);
 end
 
-if(exist('Fplot','var'))
+if(exist('PHIplot','var'))
     figure
-    mySurf(Xplot,Yplot,Fplot,'Forcing',contour);
+    mySurf(Xplot,Yplot,PHIplot,'$\phi$',contour);
     if(savePlot)
-        printPlot(sprintf('forcing%s',suffix),resultsDir);
+        printPlot(sprintf('phiSolution%s',suffix),resultsDir);
+    end
+end
+
+if(exist('Fwplot','var'))
+    figure
+    mySurf(Xplot,Yplot,Fwplot,'$f_w$',contour);
+    if(savePlot)
+        printPlot(sprintf('wForcing%s',suffix),resultsDir);
+    end
+end
+
+if(exist('Fphiplot','var'))
+    figure
+    mySurf(Xplot,Yplot,Fphiplot,'$f_{\phi}$',contour);
+    if(savePlot)
+        printPlot(sprintf('phiForcing%s',suffix),resultsDir);
     end
 end
 
 %plot error if exist
-if(exist('errPlot','var'))
+if(exist('WerrPlot','var'))
     figure
-    mySurf(Xplot,Yplot,errPlot,'Error',contour);
+    mySurf(Xplot,Yplot,WerrPlot,'$E(w)$',contour);
     if(savePlot)
-        printPlot(sprintf('error%s',suffix),resultsDir);
+        printPlot(sprintf('wError%s',suffix),resultsDir);
     end    
 end
 
+if(exist('PHIerrPlot','var'))
+    figure
+    mySurf(Xplot,Yplot,PHIerrPlot,'$E(\phi)$',contour);
+    if(savePlot)
+        printPlot(sprintf('phiError%s',suffix),resultsDir);
+    end    
+end
 
 
 end

@@ -21,9 +21,11 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-04/24/2017: coupled system:
-runShell -case=coupledSystem -nx=20 -ny=20 -bcType=1  -f=testResults
+04/26/2017: more options for coupled system:
+runShell -case=coupledSystem -solver=fsolve -nx=40 -ny=40 -bcType=3 -f=testResults -nonlinear -tol=1e-3 -maxIter=100
 
+04/25/2017: coupled system:
+runShell -case=coupledSystem -solver=fsolve -nx=20 -ny=20 -bcType=1  -f=testResults -nonlinear
 
 
 04/20/2017: created a perl script to do batchRun.pl using multithread.
@@ -53,7 +55,7 @@ runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=testResults -funcDefFile=biharmTri
 04/18/2017: convRate.m is the script to do convergence study automatically.
 
 04/17/2017: add more options to runShell
-runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=testResults
+runShell -nx=20 -ny=20 -bcType=3 -savePlot -funcDefFile=biharmTrigTestFuncDef -f=testResults
 
 04/13/2017
 runShell -nx=50 -ny=100 -xa=1 -xb=3 -ya=0 -yb=10
