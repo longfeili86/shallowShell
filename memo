@@ -21,6 +21,42 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+05/02/2017:
+newton solver is added. To use it pass option -solver=newton 
+
+
+05/01/2017: get the analytical Jacobian matrix for fsolve now!! works for bcType=1,2,3
+
+rerun convRate for linear coupled system:
+
+convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5
+
+to plot
+convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=1 -rEnd=5
+
+
+04/27/2017: implemented option -useLU for coupledSystem but it seems slower to useLU....
+           DO NOT -useLU!!!! 
+convRate works for coupledSystem now!!!
+
+to run: 
+convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5
+
+fsolve out of memory on grid G32...
+
+to plot:
+convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -rStart=1 -rEnd=5
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=1 -rEnd=5
+
+
+
 04/26/2017: more options for coupled system:
 runShell -case=coupledSystem -solver=fsolve -nx=40 -ny=40 -bcType=3 -f=testResults -nonlinear -tol=1e-3 -maxIter=100
 

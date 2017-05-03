@@ -32,8 +32,8 @@ parameters.ny=10;
 % and the exact solution (if known): exact.phi(x,y), exact.w(x,y)
 % and the initial shell shape: w0(x,y).
 parameters.funcDefFile='funcDefFileDefault'; 
-% flag for exact solution. Exact solution (if any) is defined in rhsFile
-% make sure the change this flag when defining an exact solution
+% flag for exact solution. Exact solution (if any) is defined in funcDefFile
+% make sure to change this flag when defining an exact solution
 parameters.knownExactSolution=false; 
 
 %iteration parameters

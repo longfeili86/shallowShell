@@ -47,6 +47,7 @@ knownExactSolution=parameters.knownExactSolution;
 myGrid = buildGrid(domain,nx,ny);
 Xvec = myGrid.XX(:);%column vector
 Yvec = myGrid.YY(:);%column vector
+n=length(Xvec); % number of nodes
 
 % define diff matrix
 hx = myGrid.hx;
@@ -74,110 +75,57 @@ fprintf('%sbcType:  %i\n',infoPrefix,bcType);
 fprintf('%sUsing solver: %s\n',infoPrefix,solver);
 
 
-% setup equations
-% bc for MTXs are already implemented in side of getMTX functions
-Aphi = getMTX_phiEqn(Index,mtx,parameters);
-Aw = getMTX_wEqn(Index,mtx,parameters,PHI0);
-R=zeros(3,1); % additional RHS for free bc
+
+
+%RHSs: bc are already implemented inside of getRHS functions
+RHSphi=@(w,phi) getRHS_phiEqn(w,phi,Fphi,W0,mtx,parameters,Index);
+RHSw=@(w,phi)   getRHS_wEqn(w,phi,Fw,W0,mtx,parameters,Index);
+% additional RHS for augemented system (free bc)
+R =zeros(3,1); 
 if(bcType==3)
-    % A is the augmented matrix and Q is the kernal
-    [Aw,Q]=removeMatrixSingularity(Aw,myGrid,Index);
     if(knownExactSolution)
+        % if exact solution is known, then the additional RHS should be given
+        % by exact solutions
         addRHS = 0.*Xvec;
         addRHS(Index.UsedPoints)=exact.w(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
-        R=Q'*addRHS;
+        Q=getKernalOfSingularMatrix(myGrid,Index);
+        R=Q'*addRHS; 
     end
     fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));
 end
 
-% bc for RHSs are already implemented in side of getRHS functions
-RHSphi=@(w,phi) getRHS_phiEqn(w,phi,Fphi,W0,mtx,parameters,Index);
-RHSw=@(w,phi)   getRHS_wEqn(w,phi,Fw,W0,mtx,parameters,Index);
-
-%initial guess is (W0,PHI0)
-PHI0= Aphi\RHSphi(W0,PHI0); %use 1st step of picard iteration as PHI0
-
 % solve the coupled system
-n=length(Xvec); % number of unknowns
-Nphi=1:n; % phi solutions
-Nw=n+1:2*n;  % w solutions
-Nlambda=2*n+1:2*n+3; % lambda solutions
 if(strcmp(solver,'fsolve'))
-    problem.options = optimoptions('fsolve','Display','iter-detailed',...
-        'Algorithm', 'trust-region-dogleg','TolX',tol,'TolFun',tol);
-    problem.objective = @(x) getFSolveFunction(x,Aphi,Aw,RHSphi,RHSw,bcType,R);
-    problem.x0 = getFSolveInitialGuess(W0,PHI0,bcType);
-    problem.solver = 'fsolve';
+    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,PHI0,n,parameters);   
     [x,fval,exitflag,output] = fsolve(problem);
-    PHI =x(Nphi); 
-    W =  x(Nw);
-    if(bcType==3)
-        lambda = x(Nlambda); 
-    end
+elseif(strcmp(solver,'newton'))
+    x=newtonSolve(n,PHI0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
 elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
-    %x=psolve(); % picard solve
-    isConverged=false;
-    numberOfLevels=3;
-    nadd=0; % number of additional variables
-    if(bcType==3)
-        nadd=3;
-    end
-    x=zeros(2*n+nadd,numberOfLevels); 
-    step=0;
-    % do this to avoid copying data for new stage
-    [prev,cur,new] = step2IterLevels(step);
-    x(Nphi,cur)=PHI0;
-    x(Nw,cur)=W0;
-    while(~isConverged && step<=maxIter)
-        step=step+1;
-        [prev,cur,new] = step2IterLevels(step);
-        x(Nphi,new)=Aphi\RHSphi(x(Nw,cur),x(Nphi,cur));
-        Aw=getMTX_wEqn(Index,mtx,parameters,x(Nphi,new));
-        Rw=RHSw(x(Nw,cur),x(Nphi,new));
-        if(bcType==3)
-            % A is the augmented matrix and Q is the kernal
-            quiet=true;
-            [Aw,~]=removeMatrixSingularity(Aw,myGrid,Index,quiet); 
-            Rw=[Rw;R]; % additional rhs of w equation
-        end
-        xTemp=Aw\Rw;
-        x(Nw,new)=xTemp(1:n);
-        if(bcType==3)
-           x(Nlambda,new) = x(n+1:n+3); 
-        end
-        res=sqrt(sum((x([Nphi,Nw],new)-x([Nphi,Nw],cur)).^2));
-        fprintf('%sStep=%i, res=%e\n',infoPrefix,step,res);
-        if(res<tol)
-           isConverged=true; 
-        end
-
-    end
-    if(~isConverged)
-        fprintf('%sIteration does not converge after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter);
-        fprintf('%sres=%e, tol=%e\n',infoPrefix,res,tol);
-        return
-    else
-        fprintf('%sIteration converges after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter);
-        fprintf('%sres=%e, tol=%e\n',infoPrefix,res,tol);
-    end
-    % parse solutions
-    PHI=x(Nphi,new);
-    W=x(Nw,new);
-    if(bcType==3)
-        lambda=x(Nlambda,new);
-        fprintf('%sFree BC additional variables: lambda1=%e, lambda2=%e, lambda3=%e\n',...
-            infoPrefix,lambda(1),lambda(2),lambda(3));
-    end
+    x=picardSolve(n,PHI0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
 else
     fprintf('%sError unknown solver: %s\n',infoPrefix,solver);
     return
 end
 
-% check the solutions
+% parse solutions
+Nphi=1:n; % phi solutions
+Nw=n+1:2*n;  % w solutions
+Nlambda=2*n+1:2*n+3; % lambda solutions
 
-for i=1:length(Index.UnusedGhostCorners)
-    fprintf('%s w Solution at unused point %i: %e\n',infoPrefix,i,W(Index.UnusedGhostCorners(i)));
-    fprintf('%s phi Solution at unused point %i: %e\n',infoPrefix,i,PHI(Index.UnusedGhostCorners(i)));
+PHI =x(Nphi); 
+W =  x(Nw);
+if(bcType==3)
+    lambda = x(Nlambda); 
+     fprintf('%sFree BC additional variables: lambda1=%e, lambda2=%e, lambda3=%e\n',...
+        infoPrefix,lambda(1),lambda(2),lambda(3));
+end
+
+% check the solutions at unused points: must be zero
+if(false) % everything looks good. No need to check this now
+    for i=1:length(Index.UnusedGhostCorners)
+        fprintf('%s w Solution at unused point %i: %e\n',infoPrefix,i,W(Index.UnusedGhostCorners(i)));
+        fprintf('%s phi Solution at unused point %i: %e\n',infoPrefix,i,PHI(Index.UnusedGhostCorners(i)));
+    end
 end
 
 
