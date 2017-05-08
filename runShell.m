@@ -53,6 +53,9 @@ parameters.nu=.1; % poisson ratio is ranging from 0.0 to 0.5
 parameters.E=1.;
 parameters.h=1.;
 parameters.D=1.; % D = Eh^3/(12(1-nu^2)), we specify it for now
+
+% thermal loading
+parameters.xi=0.;
 %---------------------------------------------------
 
 % read command line args
@@ -105,7 +108,9 @@ for i=1:nargin
     elseif(strncmp(line,'-E=',3))
         parameters.E=sscanf(line,'-E=%e'); 
     elseif(strncmp(line,'-h=',3))
-        parameters.h=sscanf(line,'-h=%e');      
+        parameters.h=sscanf(line,'-h=%e');   
+    elseif(strncmp(line,'-xi=',4))
+        parameters.xi=sscanf(line,'-xi=%e');  
     end  
 end
 

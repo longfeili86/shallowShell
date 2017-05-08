@@ -68,29 +68,17 @@ isReadIC=~strcmp(readICFile,''); % readIC=true if readICFile is non-empty
 isICFuncDefined=exist('wi','var'); % isICFuncDefined=true if a function_handle wi=@(x,y) is defined in funcDef
 if( isICFuncDefined && ~isReadIC) % get ic from the defined function_handle
     fprintf('%sComputing initial guess from function wi(x,y) defined in %s.m\n',infoPrefix,funcDefFile);   
-    Wi = wi(Xvec,Yvec); % evaluate initial guess at nodes.  
+    Wi = wi(Xvec,Yvec); % evaluate initial guess at nodes. 
 elseif(~isICFuncDefined && isReadIC) % get ic from data file
     ICFileName=sprintf('%s.dat',readICFile);
     fprintf('%sReading in initial guess from data file: %s\n',infoPrefix,ICFileName);      
-    Wi=dlmread(ICFileName);
-    assert(length(Wi)==length(W0),'Error: initial guess read in from file does not match the size of the computational grid.');
+    x0=dlmread(ICFileName); % the saved ic for all solutions now
 elseif(isICFuncDefined && isReadIC)
     error('Both an IC data file and an IC function are given. I do not know which one to use. Specify only one or none to use W0 by default');
 else
     fprintf('%sUsing w0 as initial guess\n',infoPrefix);           
     Wi=W0;  % if no initial guess is specified, use W0 as initial guess
 end
-
-% print some information before solve
-sysInfo='nonlinear';
-if(isLinear)
-    sysInfo='linear';
-end
-fprintf('%sThe coupled system is %s\n',infoPrefix,sysInfo);
-fprintf('%sbcType:  %i\n',infoPrefix,bcType);
-fprintf('%sUsing solver: %s\n',infoPrefix,solver);
-
-
 
 
 %RHSs: bc are already implemented inside of getRHS functions
@@ -110,14 +98,38 @@ if(bcType==3)
     fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));
 end
 
+% initial guess for w is known, we obtain initial guess for the whole 
+% system x0 by using 1 step of picard:
+if(exist('Wi','var')) 
+    Aphi = getMTX_phiEqn(Index,mtx,parameters);
+    x0=getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
+end
+
+
+
+
+% print some information before solve
+sysInfo='nonlinear';
+if(isLinear)
+    sysInfo='linear';
+end
+fprintf('%sThe coupled system is %s\n',infoPrefix,sysInfo);
+fprintf('%sbcType:  %i\n',infoPrefix,bcType);
+fprintf('%sUsing solver: %s\n',infoPrefix,solver);
+
+
+
+
+
+
 % solve the coupled system
 if(strcmp(solver,'fsolve'))
-    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,Wi,n,parameters);   
+    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,parameters);   
     [x,fval,exitflag,output] = fsolve(problem);
 elseif(strcmp(solver,'newton'))
-    x=newtonSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
+    x=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
 elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
-    x=picardSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
+    x=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
 else
     fprintf('%sError unknown solver: %s\n',infoPrefix,solver);
     return
@@ -148,7 +160,7 @@ end
 if(~strcmp(saveICFile,''))
     saveICFileName=sprintf('%s.dat',saveICFile);
     fprintf('%sSave w solution into an IC file: %s\n',infoPrefix,saveICFileName);
-    dlmwrite(saveICFileName,W);
+    dlmwrite(saveICFileName,x); % save all solutions
 end
 
 

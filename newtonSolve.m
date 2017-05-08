@@ -1,6 +1,6 @@
-function x=newtonSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
+function x=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
 % solve the coupled problem using newton iteration methods
-% Input: Wi is the initial guess
+% Input: x0 is the initial guess for both phi and w 
 % -- Longfei Li
 
 infoPrefix = '--newtonSolve--: '; % all info displayed by this function includes this prefix
@@ -36,7 +36,7 @@ step=0;
 % do this to avoid copying data for new stage
 % solution at step 0 is stored in new
 [prev2,prev,cur,new] = step2IterLevels(step); % we need four stages to estimate convegence rate
-xSol(:,new)=getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
+xSol(:,new)=x0;
 F(:,new)=FEvaluation(xSol(:,cur),n,Aphi,Aw,RHSphi,RHSw,R,parameters);
 while(~isConverged && step<=maxIter)
     tStart=tic;
