@@ -17,7 +17,7 @@ if(figOptions.CT)
     hold on
     [~,hh]=contour3(Xplot,Yplot,Zplot,figOptions.NL);
     for i=1:numel(hh)
-        set(hh(i),'EdgeColor','k','LineWidth',figOptions.LW)
+        set(hh(i),'EdgeColor','k','LineWidth',figOptions.LW);
     end
     hold off
 end   

@@ -20,6 +20,69 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+05/07/2017:
+now we can define wi(x,y) inside of funcDefFile to specify initial guess
+or pass a filename to -readICFile=<ICfilename> to use ic data inside a file
+if nothing is given to runShell, use w0 as initial guess by default.
+
+to saveICFile pass: -saveICFile=<ICFileName>
+runShell -case=coupledSystem -solver=newton -funcDefFile=bifurcationFuncDef -nx=320 -ny=320 -bcType=2 -f=bifurcationTestResults -saveICFile=bifurIC -nonlinear -tol=1e-6 -maxIter=200
+
+to read ICFile pass: -readICFile=<ICFileName>
+runShell -case=coupledSystem -solver=newton -funcDefFile=bifurcationFuncDef -nx=320 -ny=320 -bcType=2 -f=bifurcationTestResults -readICFile=bifurIC -nonlinear -tol=1e-6 -maxIter=200
+
+to update ICFile after each run (which is needed by continuation method), pass both -readICFile and -saveICFile with the same filename
+
+05/05/2017:
+trying to get the bifurcation diagram:
+runShell -case=coupledSystem -solver=newton -funcDefFile=bifurcationFuncDef -nx=320 -ny=320 -bcType=2 -f=bifurcationTestResults -nonlinear -tol=1e-6 -maxIter=200
+
+
+
+
+05/04/2017:
+% test conv rate for free bc:
+runShell -noplot -case=coupledSystem -funcDefFile=coupledSystemTestFuncDef -solver=fsolve -funcDefFile=coupledSystemTestFuncDef -nx=320 -ny=320 -bcType=3 -f=testResultsFreeG32 -nonlinear -tol=1e-3 -maxIter=100
+
+
+
+use batchRun.pl to do all the runs. I disabled multithread; i dont have enought memory to do all of them at the 
+same time. So just do it one by one. 
+In batchRun, the following cases were simulated:
+
+$rEnd=6;
+@cmds = (
+    #biharmonic conv test
+    "convRate -case=biharmonic -test=biharmTrigTest -run -noplot -rStart=1 -rEnd=$rEnd",
+    "convRate -case=biharmonic -test=biharmPolyTest -run -noplot -rStart=1 -rEnd=$rEnd",
+    #nonlinear coupled system conv test
+    "convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd -nonlinear",
+    "convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd -nonlinear",
+    "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd -nonlinear",
+    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd -nonlinear",
+    #linear coupled system conv test
+    "convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd",
+    "convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd",
+    "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd",
+    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=$rEnd"
+    );
+
+
+
+
+
+runShell -case=coupledSystem -solver=fsolve -funcDefFile=coupledSystemTestFuncDef -nx=40 -ny=40 -bcType=2 -f=testResults -nonlinear -tol=1e-3 -maxIter=100
+convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5 -nonlinear
+convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5 -nonlinear
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5 -nonlinear
+convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=1 -rEnd=5 -nonlinear
+
+plot:
+convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest  -rStart=1 -rEnd=5 -nonlinear
+convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -rStart=1 -rEnd=5 -nonlinear
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=1 -rEnd=5 -nonlinear
+convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -rStart=1 -rEnd=5 -nonlinear
+
 
 05/02/2017:
 newton solver is added. To use it pass option -solver=newton 

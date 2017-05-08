@@ -36,6 +36,13 @@ parameters.funcDefFile='funcDefFileDefault';
 % make sure to change this flag when defining an exact solution
 parameters.knownExactSolution=false; 
 
+%read/save initial condition (guess) from/to  file, by default they are empty
+% format for the IC files has to be .dat
+parameters.readICFile=''; % if non-empty, read IC from file
+parameters.saveICFile=''; % if non-empty, save current solution as an IC file
+
+
+
 %iteration parameters
 parameters.maxIter=500;
 parameters.tol=1e-6;
@@ -60,7 +67,7 @@ for i=1:nargin
     elseif(strcmp(line,'-noplot'))
         parameters.isPlot=false;
     elseif(strcmp(line,'-useLU'))
-        parameters.useLU=true;          
+        parameters.useLU=true;         
     elseif(strncmp(line,'-case=',6))
         parameters.caseName=line(7:end);
     elseif(strncmp(line,'-bcType=',8))
@@ -81,8 +88,12 @@ for i=1:nargin
         parameters.nx=sscanf(line,'-nx=%i');  
     elseif(strncmp(line,'-ny=',4))
         parameters.ny=sscanf(line,'-ny=%i');
-    elseif(strncmp(line,'-funcDefFile=',12))
+    elseif(strncmp(line,'-funcDefFile=',13))
         parameters.funcDefFile=sscanf(line,'-funcDefFile=%s');
+    elseif(strncmp(line,'-readICFile=',12))
+        parameters.readICFile=sscanf(line,'-readICFile=%s');
+    elseif(strncmp(line,'-saveICFile=',12))
+        parameters.saveICFile=sscanf(line,'-saveICFile=%s');
     elseif(strncmp(line,'-maxIter=',9))
         parameters.maxIter=sscanf(line,'-maxIter=%i');
     elseif(strncmp(line,'-tol=',5))

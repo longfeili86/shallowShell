@@ -1,5 +1,7 @@
-function problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,PHI0,n,parameters)
+function problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,Wi,n,parameters)
 % this function setup the problem for fsolve
+% input: 
+%   Wi is the initial guess
 %
 % -- Longfei Li
 
@@ -9,7 +11,7 @@ tol=parameters.tol;
 % setup matrices
 % bc for MTXs are  implemented in side of getMTX functions
 Aphi = getMTX_phiEqn(Index,mtx,parameters);
-Aw = getMTX_wEqn(Index,mtx,parameters,PHI0);
+Aw = getMTX_wEqn(Index,mtx,parameters,0.*W0);  % we don't need the PHI argument for fsolve, so pass zero 
 if(bcType==3)
     % A is the augmented matrix and Q is the kernal
     Aw=removeMatrixSingularity(Aw,myGrid,Index);
@@ -21,7 +23,7 @@ problem.options = optimoptions('fsolve','Display','iter-detailed',...
     'Algorithm', 'trust-region-dogleg','TolX',tol,'TolFun',tol,...
     'Jacobian','on'); % we know how to compute Jacobiam now. So turn it on
 problem.objective = @(x) fsolveFun(x,n,W0,Aphi,Aw,mtx,Index,RHSphi,RHSw,R,parameters);
-problem.x0 = getInitialGuess(n,W0,PHI0,Aphi,RHSphi,parameters);
+problem.x0 = getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
 problem.solver = 'fsolve';
 
 end

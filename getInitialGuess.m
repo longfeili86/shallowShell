@@ -1,4 +1,4 @@
-function x0=getInitialGuess(n,W0,PHI0,Aphi,RHSphi,parameters)
+function x0=getInitialGuess(n,Wi,Aphi,RHSphi,parameters)
 
 Nphi=1:n; % phi solutions
 Nw=n+1:2*n;  % w solutions
@@ -10,14 +10,13 @@ end
 x0=zeros(2*n+nadd,1); % holder for initial guess
 
 
+%initial guess
+x0(Nw,1)=Wi;
 
-%initial guess is (PHI0,W0)
-
-PHI0= Aphi\RHSphi(W0,PHI0); %use 1st step from picard iteration as PHI0 for fsolve
+x0(Nphi,1)= Aphi\RHSphi(x0(Nw,1),0.*x0(Nw,1)); %use 1st step from picard iteration to get initial guess for phi
 
 
-x0(Nphi,1)=PHI0;
-x0(Nw,1)=W0;
+
 
 
 end

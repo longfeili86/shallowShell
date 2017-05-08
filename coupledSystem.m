@@ -38,7 +38,8 @@ tol=parameters.tol;
 funcDefFile=parameters.funcDefFile;
 knownExactSolution=parameters.knownExactSolution;
 
-
+readICFile=parameters.readICFile; % if non-empty, read IC from this file
+saveICFile=parameters.saveICFile; % save the w solution into an ICFile
 
 
 % preprocess
@@ -63,7 +64,22 @@ run(funcDefFile); % f.w(x,y), f.phi(x,y) and w0(x,y) are defined here
 Fphi=f.phi(Xvec,Yvec);
 Fw=f.w(Xvec,Yvec);
 W0=w0(Xvec,Yvec);
-PHI0=0.*W0; % store initial guess for phi
+isReadIC=~strcmp(readICFile,''); % readIC=true if readICFile is non-empty
+isICFuncDefined=exist('wi','var'); % isICFuncDefined=true if a function_handle wi=@(x,y) is defined in funcDef
+if( isICFuncDefined && ~isReadIC) % get ic from the defined function_handle
+    fprintf('%sComputing initial guess from function wi(x,y) defined in %s.m\n',infoPrefix,funcDefFile);   
+    Wi = wi(Xvec,Yvec); % evaluate initial guess at nodes.  
+elseif(~isICFuncDefined && isReadIC) % get ic from data file
+    ICFileName=sprintf('%s.dat',readICFile);
+    fprintf('%sReading in initial guess from data file: %s\n',infoPrefix,ICFileName);      
+    Wi=dlmread(ICFileName);
+    assert(length(Wi)==length(W0),'Error: initial guess read in from file does not match the size of the computational grid.');
+elseif(isICFuncDefined && isReadIC)
+    error('Both an IC data file and an IC function are given. I do not know which one to use. Specify only one or none to use W0 by default');
+else
+    fprintf('%sUsing w0 as initial guess\n',infoPrefix);           
+    Wi=W0;  % if no initial guess is specified, use W0 as initial guess
+end
 
 % print some information before solve
 sysInfo='nonlinear';
@@ -96,12 +112,12 @@ end
 
 % solve the coupled system
 if(strcmp(solver,'fsolve'))
-    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,PHI0,n,parameters);   
+    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,Wi,n,parameters);   
     [x,fval,exitflag,output] = fsolve(problem);
 elseif(strcmp(solver,'newton'))
-    x=newtonSolve(n,PHI0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
+    x=newtonSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
 elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
-    x=picardSolve(n,PHI0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
+    x=picardSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
 else
     fprintf('%sError unknown solver: %s\n',infoPrefix,solver);
     return
@@ -123,21 +139,29 @@ end
 % check the solutions at unused points: must be zero
 if(false) % everything looks good. No need to check this now
     for i=1:length(Index.UnusedGhostCorners)
-        fprintf('%s w Solution at unused point %i: %e\n',infoPrefix,i,W(Index.UnusedGhostCorners(i)));
-        fprintf('%s phi Solution at unused point %i: %e\n',infoPrefix,i,PHI(Index.UnusedGhostCorners(i)));
+        fprintf('%sw Solution at unused point %i: %e\n',infoPrefix,i,W(Index.UnusedGhostCorners(i)));
+        fprintf('%sphi Solution at unused point %i: %e\n',infoPrefix,i,PHI(Index.UnusedGhostCorners(i)));
     end
+end
+
+% save solution into an IC file, so that other runs can read as its initial guess
+if(~strcmp(saveICFile,''))
+    saveICFileName=sprintf('%s.dat',saveICFile);
+    fprintf('%sSave w solution into an IC file: %s\n',infoPrefix,saveICFileName);
+    dlmwrite(saveICFileName,W);
 end
 
 
 % postprocess results
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
 Yplot = reshape(Yvec(Index.interiorBoundary),ny,nx);
+W0plot = reshape(W0(Index.interiorBoundary),ny,nx);
 Wplot = reshape(W(Index.interiorBoundary),ny,nx);
 PHIplot = reshape(PHI(Index.interiorBoundary),ny,nx);
 Fwplot=reshape(Fw(Index.interiorBoundary),ny,nx);
 Fphiplot=reshape(Fphi(Index.interiorBoundary),ny,nx);
 
-save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','PHIplot','Fwplot','Fphiplot');
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','W0plot','PHIplot','Fwplot','Fphiplot');
 if(knownExactSolution)
     WerrPlot=exact.w(Xplot,Yplot)-Wplot;
     PHIerrPlot=exact.phi(Xplot,Yplot)-PHIplot;
@@ -146,6 +170,12 @@ end
 
 
 if (isPlot)
+    figure
+    mySurf(Xplot,Yplot,W0plot,'$w_0$');
+    if(savePlot)
+        printPlot('w0',resultsDir);
+    end    
+    
     figure
     mySurf(Xplot,Yplot,Wplot,'$w$');
     if(savePlot)

@@ -78,11 +78,12 @@ RHS = assignBoundaryConditionsRHS(RHS,Index,parameters);
 % remove sigularity:
 if(bcType==3)
     % A is the augmented matrix and Q is the kernal
-    [A,Q]=removeMatrixSingularity(A,myGrid,Index); 
+    A=removeMatrixSingularity(A,myGrid,Index); 
     R=zeros(3,1); % additional rhs for the augemented system
     if(knownExactSolution)
         addRHS = 0.*RHS;
         addRHS(Index.UsedPoints)=exact.w(Xvec(Index.UsedPoints),Yvec(Index.UsedPoints));
+        Q=getKernalOfSingularMatrix(myGrid,Index);        
         R=Q'*addRHS;
     end
     fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));

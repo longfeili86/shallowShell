@@ -1,6 +1,6 @@
-function x=newtonSolve(n,PHI0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
+function x=newtonSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
 % solve the coupled problem using newton iteration methods
-%
+% Input: Wi is the initial guess
 % -- Longfei Li
 
 infoPrefix = '--newtonSolve--: '; % all info displayed by this function includes this prefix
@@ -26,7 +26,7 @@ xSol=zeros(2*n+nadd,numberOfLevels); % holder for solutions
 F=zeros(2*n+nadd,numberOfLevels); % holder for F vectors
 
 Aphi = getMTX_phiEqn(Index,mtx,parameters); % Aphi does not change
-Aw=getMTX_wEqn(Index,mtx,parameters,PHI0);   
+Aw=getMTX_wEqn(Index,mtx,parameters,0.*W0); % we don't need the PHI argument for newton, so pass zero   
 if(bcType==3)
     quiet=false;
     Aw=removeMatrixSingularity(Aw,myGrid,Index,quiet); 
@@ -36,7 +36,7 @@ step=0;
 % do this to avoid copying data for new stage
 % solution at step 0 is stored in new
 [prev2,prev,cur,new] = step2IterLevels(step); % we need four stages to estimate convegence rate
-xSol(:,new)=getInitialGuess(n,W0,PHI0,Aphi,RHSphi,parameters);
+xSol(:,new)=getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
 F(:,new)=FEvaluation(xSol(:,cur),n,Aphi,Aw,RHSphi,RHSw,R,parameters);
 while(~isConverged && step<=maxIter)
     tStart=tic;

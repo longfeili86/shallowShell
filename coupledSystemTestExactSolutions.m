@@ -18,8 +18,8 @@ fy=2*pi/(yb-ya);
 
 
 % the exact solution used for convergence test
-w = (sin(fx*(x-xa)).*sin(fy*(y-ya))).^5;
-phi =  (sin(fx*(x-xa)).*sin(fy*(y-ya))).^3;
+w = (sin(fx*(x-xa)).*sin(fy*(y-ya))).^4;
+phi =  (sin(fx*(x-xa)).*sin(fy*(y-ya))).^5;
 w0= (sin(fx*(x-xa)).*sin(fy*(y-ya)));
 
 L=@(u,v) diff(u,x,2).*diff(v,y,2)+ diff(u,y,2).*diff(v,x,2)-2.*diff(diff(u,y,1),x,1).*diff(diff(v,y,1),x,1);

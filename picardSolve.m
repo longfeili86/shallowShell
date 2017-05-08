@@ -1,6 +1,6 @@
-function x=picardSolve(n,PHI0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
+function x=picardSolve(n,Wi,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
 % solve the coupled problem using picard iteration methods
-%
+% Input: Wi is the initial guess
 % -- Longfei Li
 
 infoPrefix = '--picardSolve--: '; % all info displayed by this function includes this prefix
@@ -33,7 +33,7 @@ end
 % Aw does not change for exPicard, so we compute it only once before the
 % iteration starts
 if(strcmp(solver,'exPicard'))
-    Aw=getMTX_wEqn(Index,mtx,parameters,PHI0);   
+    Aw=getMTX_wEqn(Index,mtx,parameters,0.*W0);  % we don't need the PHI argument for exPicard, so pass zero 
     if(bcType==3)
         quiet=false;
         Aw=removeMatrixSingularity(Aw,myGrid,Index,quiet); 
@@ -50,7 +50,7 @@ step=0;
 % do this to avoid copying data for new stage
 % solution at step 0 is stored in new
 [prev2,prev,cur,new] = step2IterLevels(step); % we need four stages to estimate convegence rate
-xSol(:,new)=getInitialGuess(n,W0,PHI0,Aphi,RHSphi,parameters);
+xSol(:,new)=getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
 while(~isConverged && step<=maxIter)
     % time each step:
     tStart=tic;
