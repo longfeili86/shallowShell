@@ -1,4 +1,4 @@
-function coupledSystem(parameters)
+function exitflag=coupledSystem(parameters)
 % given parameters, this function solves the coupled system:
 %   pde:  \nabla^4 phi = -1/2 L[w,w]*lambda - L[w0,w] -f.phi
 %         \nabla^4 w   = L[w,phi]*lambda + L[w0,phi] + f.w
@@ -10,6 +10,11 @@ function coupledSystem(parameters)
 %         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0, phi=0, dphidn=0 
 %         4: mixed CS to do FINISH ME ......
 %         5: mixed CF to do FINISH ME ......
+%   output:
+%           exitflag>0  success
+%           exitflag=0  failed interations greater than maxIters
+%           exitflag<0  other failure
+%
 % --Longfei Li
 
 infoPrefix = '--coupledSystem--: '; % all info displayed by this function includes this prefix
@@ -27,6 +32,7 @@ ny=parameters.ny; % number of grid points in y direction
 
 isPlot=parameters.isPlot;
 savePlot=parameters.savePlot;
+saveIC=parameters.saveIC;
 useLU=parameters.useLU;
 
 isLinear=parameters.isLinear;
@@ -41,7 +47,11 @@ knownExactSolution=parameters.knownExactSolution;
 readICFile=parameters.readICFile; % if non-empty, read IC from this file
 saveICFile=parameters.saveICFile; % save the w solution into an ICFile
 
+% if non empty, obtain initial guess from results saved in those dirs
+readICResult1=parameters.readICResult1;
+readICResult2=parameters.readICResult2;
 
+xi=parameters.xi; %thermal loading
 % preprocess
 
 % define grid
@@ -59,20 +69,27 @@ mtx = getDiffMatrix(nx,ny,hx,hy);
 Index=getIndex(nx,ny);
 
 % define given functions
+isReadIC=(~strcmp(readICResult1,'') || ~strcmp(readICFile,'')); % readIC=true if readICFile is non-empty or if readICResult1 is non-empty
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);
 run(funcDefFile); % f.w(x,y), f.phi(x,y) and w0(x,y) are defined here
 Fphi=f.phi(Xvec,Yvec);
 Fw=f.w(Xvec,Yvec);
 W0=w0(Xvec,Yvec);
-isReadIC=~strcmp(readICFile,''); % readIC=true if readICFile is non-empty
 isICFuncDefined=exist('wi','var'); % isICFuncDefined=true if a function_handle wi=@(x,y) is defined in funcDef
 if( isICFuncDefined && ~isReadIC) % get ic from the defined function_handle
     fprintf('%sComputing initial guess from function wi(x,y) defined in %s.m\n',infoPrefix,funcDefFile);   
     Wi = wi(Xvec,Yvec); % evaluate initial guess at nodes. 
 elseif(~isICFuncDefined && isReadIC) % get ic from data file
-    ICFileName=sprintf('%s.dat',readICFile);
-    fprintf('%sReading in initial guess from data file: %s\n',infoPrefix,ICFileName);      
-    x0=dlmread(ICFileName); % the saved ic for all solutions now
+    if( ~strcmp(readICFile,''))
+        ICFileName=sprintf('%s.dat',readICFile);
+        fprintf('%sReading in initial guess from data file: %s\n',infoPrefix,ICFileName);      
+        x0=dlmread(ICFileName); % the saved ic for all solutions now
+    elseif(~strcmp(readICResult1,''))
+        x0=readICfromSavedResults(xi,readICResult1,readICResult2);  
+    else
+        error('something wrong with readIC\n');
+    end
+    assert((length(x0)==2*n || length(x0)==2*n+3),'Error: size of the read-in initial guess does not match the grid');
 elseif(isICFuncDefined && isReadIC)
     error('Both an IC data file and an IC function are given. I do not know which one to use. Specify only one or none to use W0 by default');
 else
@@ -127,13 +144,14 @@ if(strcmp(solver,'fsolve'))
     problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,parameters);   
     [x,fval,exitflag,output] = fsolve(problem);
 elseif(strcmp(solver,'newton'))
-    x=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
+    [x,fval,exitflag,output]=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
 elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
-    x=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
+    [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
 else
     fprintf('%sError unknown solver: %s\n',infoPrefix,solver);
     return
 end
+
 
 % parse solutions
 Nphi=1:n; % phi solutions
@@ -156,13 +174,16 @@ if(false) % everything looks good. No need to check this now
     end
 end
 
+
+% write summary
+writeSummary(fval,exitflag,output);
+
 % save solution into an IC file, so that other runs can read as its initial guess
 if(~strcmp(saveICFile,''))
     saveICFileName=sprintf('%s.dat',saveICFile);
-    fprintf('%sSave w solution into an IC file: %s\n',infoPrefix,saveICFileName);
-    dlmwrite(saveICFileName,x); % save all solutions
+    fprintf('%sSave solution into an IC file: %s\n',infoPrefix,saveICFileName);
+    dlmwrite(saveICFileName,x);
 end
-
 
 % postprocess results
 Xplot = reshape(Xvec(Index.interiorBoundary),ny,nx);
@@ -173,7 +194,16 @@ PHIplot = reshape(PHI(Index.interiorBoundary),ny,nx);
 Fwplot=reshape(Fw(Index.interiorBoundary),ny,nx);
 Fphiplot=reshape(Fphi(Index.interiorBoundary),ny,nx);
 
-save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','W0plot','PHIplot','Fwplot','Fphiplot');
+% Longfei 20170508: save x into results. So we can load x and use it as
+% initial guess for other runs
+save(sprintf('%s/results.mat',resultsDir),'Xplot','Yplot','Wplot','W0plot','PHIplot','Fwplot','Fphiplot','x','xi');
+if(saveIC)
+    PHIi=x0(Nphi);
+    Wi=x0(Nw);
+    PHIiplot=reshape(PHIi(Index.interiorBoundary),ny,nx); 
+    Wiplot=reshape(Wi(Index.interiorBoundary),ny,nx);
+    save(sprintf('%s/results.mat',resultsDir),'Wiplot','PHIiplot','-append');
+end
 if(knownExactSolution)
     WerrPlot=exact.w(Xplot,Yplot)-Wplot;
     PHIerrPlot=exact.phi(Xplot,Yplot)-PHIplot;

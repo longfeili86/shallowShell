@@ -20,7 +20,19 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-05/07/2017:
+05/08/2017:
+try 320*320 
+matlab -nodisplay -r 'bifurcationRun;exit;'>bifurcationNIN.log
+
+
+05/08/2017:
+now we can get ic in the tangent direction by providing two previuos results
+-readICResult1=<resultsDir1> -readICResult2=<resultsDir2>
+or just use a previous result by just providing
+-readICResult1=<resultsDir1>
+
+
+05/07/2017: 
 now we can define wi(x,y) inside of funcDefFile to specify initial guess
 or pass a filename to -readICFile=<ICfilename> to use ic data inside a file
 if nothing is given to runShell, use w0 as initial guess by default.

@@ -1,4 +1,4 @@
-function x=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
+function [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
 % solve the coupled problem using picard iteration methods
 % Input: Wi is the initial guess
 % -- Longfei Li
@@ -93,22 +93,24 @@ while(~isConverged && step<=maxIter)
  
 end
 
-if(~isConverged)
-    fprintf('%sIteration does not converge after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter);
-    fprintf('%sres=%e, tol=%e\n',infoPrefix,res,tol);
-    error('abort picardSolve');
+output.algorithm=solver;
+output.iterations=step;
+
+message=sprintf('res=%e,tol=%e, maxIter=%i\n',res,tol,maxIter);
+message=sprintf('%sAverage time used per iteration step is %e sec\n',message,mean(tStep));
+message=sprintf('%sEstimated computational order of convergence p=%f\n',message,mean(p(5:end)));
+output.message=message;
+
+
+if(isConverged)
+    exitflag=1;
 else
-    fprintf('%s-----------Iteration Summary-----------\n',infoPrefix); 
-    fprintf('%sIteration converges after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter); 
-    fprintf('%sAverage time used per iteration step is %e sec\n',infoPrefix,mean(tStep)); 
-    fprintf('%sEstimated computational order of convergence p=%f\n',infoPrefix,mean(p(5:end)));
-    x=xSol(:,new); % solution
-    %get fval so we can compare with newton or fsolve:
-    F=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,parameters);
-    fval=sqrt(sum(F.^2)); % use L2 norm for now
-    fprintf('%sres=%e, fval=%e, tol=%e\n',infoPrefix,res,fval,tol);
-    fprintf('%s---------------------------------------\n',infoPrefix); 
+    exitflag=0;
 end
+
+x=xSol(:,new); % solution (could be unconverged)
+%get fval so we can compare with newton or fsolve:
+fval=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,parameters);
 
 
 end

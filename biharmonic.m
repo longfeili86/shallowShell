@@ -1,4 +1,4 @@
-function biharmonic(parameters)
+function exitflag=biharmonic(parameters)
 % given parameters, this function solves the harmonic equation:
 %   pde: \nabla^4 w = rhs
 %   bcTypes: 0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
@@ -8,6 +8,10 @@ function biharmonic(parameters)
 %         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0
 %         4: mixed CS to do FINISH ME ......
 %         5: mixed CF to do FINISH ME ......
+%   output:
+%           exitflag>0  success
+%           exitflag<0  failure
+%
 % --Longfei Li
 
 infoPrefix = '--biharmonic--: '; % all info displayed by this function includes this prefix
@@ -156,5 +160,5 @@ if (isPlot)
     end
 end
 
-
+exitflag=1;
 end

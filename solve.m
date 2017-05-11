@@ -1,4 +1,4 @@
-function solve(parameters)
+function exitflag=solve(parameters)
 % This function do the actual solve for various case with given parameters
 % --Longfei Li
 
@@ -11,10 +11,10 @@ caseName=parameters.caseName;
 switch (caseName)
     case 'biharmonic'
         fprintf('%sSolve the biharmonic equation\n',infoPrefix);
-        biharmonic(parameters);
+        exitflag=biharmonic(parameters);
     case 'coupledSystem'
         fprintf('%sSolve the the coupled system\n',infoPrefix);
-        coupledSystem(parameters);
+        exitflag=coupledSystem(parameters);
     otherwise
         fprintf('%sSupported cases: biharmonic,exPicard,imPicard,newton.\n',infoPrefix);
         fprintf('%sTerminated.\n',infoPrefix);

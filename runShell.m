@@ -1,7 +1,12 @@
-function runShell(varargin)
+function exitflag=runShell(varargin)
 %=========================================================================
 % This is the main interface for setting up parameters and running various
 % cases for the shell paper
+% output:
+%           exitflag>0  success
+%           exitflag=0  failed interations greater than maxIters
+%           exitflag<0  other failure
+%
 % usage:
 % runShell -options
 % --Longfei Li
@@ -11,8 +16,10 @@ infoPrefix = '--runShell--: '; % all info displayed by this function includes th
 %--------------- some default options -----------------
 parameters.resultsDir='.'; % directory to save results. By default it's pwd
 parameters.saveDiary=true; % flag to Save Command Window text to file
+parameters.saveProfile=true; % flag to Save profile
 parameters.isPlot=true;
 parameters.savePlot=false;
+parameters.saveIC=false; % flag to save initial conditon
 parameters.useLU=false;
 parameters.caseName='biharmonic'; % supported cases:biharmonic,exPicard,imPicard,newton 
 parameters.bcType=2; % bcTypes:0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
@@ -42,10 +49,21 @@ parameters.readICFile=''; % if non-empty, read IC from file
 parameters.saveICFile=''; % if non-empty, save current solution as an IC file
 
 
+% read initial condition (guess) from other saved results
+% they are used in continuation method. 
+% we can obtian initial guess using the following 2 methods:
+% 1. if 2 result are specified: x0 = (x1-x2)/(xi1-xi2)*(xi-xi1)+x1;
+% 2. if only result1 is specified: x0=x1;
+% Result1 for previous the results
+% Result2 for previous previous results
+parameters.readICResult1=''; 
+parameters.readICResult2=''; 
+
 
 %iteration parameters
 parameters.maxIter=500;
 parameters.tol=1e-6;
+parameters.relaxFactor=1.; % relaxation factor
 
 % physical parameters
 parameters.nu=.1; % poisson ratio is ranging from 0.0 to 0.5
@@ -63,12 +81,16 @@ for i=1:nargin
     line = varargin{i};
     if(strncmp(line,'-f=',3))
         parameters.resultsDir=line(4:end); 
-    elseif(strcmp(line,'-savePlot'))
-        parameters.savePlot=true;
     elseif(strcmp(line,'-nodiary'))
-        parameters.saveDiary=false;        
+        parameters.saveDiary=false;
+    elseif(strcmp(line,'-noprofile'))
+        parameters.saveProfile=false;           
     elseif(strcmp(line,'-noplot'))
         parameters.isPlot=false;
+    elseif(strcmp(line,'-savePlot'))
+        parameters.savePlot=true;        
+    elseif(strcmp(line,'-saveIC'))
+        parameters.saveIC=true;
     elseif(strcmp(line,'-useLU'))
         parameters.useLU=true;         
     elseif(strncmp(line,'-case=',6))
@@ -96,11 +118,17 @@ for i=1:nargin
     elseif(strncmp(line,'-readICFile=',12))
         parameters.readICFile=sscanf(line,'-readICFile=%s');
     elseif(strncmp(line,'-saveICFile=',12))
-        parameters.saveICFile=sscanf(line,'-saveICFile=%s');
+        parameters.saveICFile=sscanf(line,'-saveICFile=%s');        
+    elseif(strncmp(line,'-readICResult1=',15))
+        parameters.readICResult1=sscanf(line,'-readICResult1=%s');
+    elseif(strncmp(line,'-readICResult2=',15))
+        parameters.readICResult2=sscanf(line,'-readICResult2=%s');
     elseif(strncmp(line,'-maxIter=',9))
         parameters.maxIter=sscanf(line,'-maxIter=%i');
     elseif(strncmp(line,'-tol=',5))
         parameters.tol=sscanf(line,'-tol=%e'); 
+    elseif(strncmp(line,'-relaxFactor=',13))
+        parameters.relaxFactor=sscanf(line,'-relaxFactor=%e');         
     elseif(strncmp(line,'-D=',3))
         parameters.D=sscanf(line,'-D=%e');      
     elseif(strncmp(line,'-nu=',4))
@@ -110,7 +138,7 @@ for i=1:nargin
     elseif(strncmp(line,'-h=',3))
         parameters.h=sscanf(line,'-h=%e');   
     elseif(strncmp(line,'-xi=',4))
-        parameters.xi=sscanf(line,'-xi=%e');  
+        parameters.xi=sscanf(line,'-xi=%e'); % read in thermal loading 
     end  
 end
 
@@ -132,12 +160,21 @@ fprintf('%sRunning: caseName=%s\n',infoPrefix,parameters.caseName);
 fprintf('%sResults are saved in directory: %s/\n',infoPrefix,parameters.resultsDir);
 
 % save the profile for the solve
-profile on %-history
-solve(parameters);
-profile off
-pf = profile('info');
-save(sprintf('%s/profile.mat',parameters.resultsDir),'pf');
+if(parameters.saveProfile)
+    fprintf('%sSave a profile file for this run\n',infoPrefix);
+    profile on %-history
+end
+exitflag=solve(parameters);
+if(exitflag<=0)
+    fprintf('%sSolve failed with exitflag=%i\n',infoPrefix,exitflag);
+    fprintf('%sResults saved in directory \"%s\" are not valid.\n',infoPrefix,parameters.resultsDir);
+end
 
+if(parameters.saveProfile)
+    profile off
+    pf = profile('info');
+    save(sprintf('%s/profile.mat',parameters.resultsDir),'pf');
+end
 
 fprintf('%sCode exited successfully.\n',infoPrefix);
 

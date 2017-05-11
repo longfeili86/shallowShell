@@ -17,9 +17,9 @@ if(res<tol)
    isConverged=true; 
 end
 
-if(res>1e15)
-    error('Iteration is diverging. I am going to abort.');
-end
+%if(res>1e15)
+%    error('Iteration is diverging. I am going to abort.');
+%end
 
 p=0; % estimated iteration conv rate
 if(step>4)

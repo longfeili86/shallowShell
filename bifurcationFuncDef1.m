@@ -13,6 +13,6 @@ f.w=@(x,y) 0.*x+0.*y;
 w0=@(x,y) 0.3*(1.-(x - 0.5).^2 - (y -0.5).^2);
 
 % initial guess:
-if(strcmp(parameters.readICFile,''))
-    wi=@(x,y) w0(x,y);
+if(~isReadIC)
+    wi=@(x,y) 0.*w0(x,y);
 end

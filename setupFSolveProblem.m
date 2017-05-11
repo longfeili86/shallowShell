@@ -7,7 +7,7 @@ function problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,param
 
 bcType=parameters.bcType;
 tol=parameters.tol;
-
+maxIter=parameters.maxIter;
 % setup matrices
 % bc for MTXs are  implemented in side of getMTX functions
 Aphi = getMTX_phiEqn(Index,mtx,parameters);
@@ -21,7 +21,7 @@ end
 % setup problem for fsolve
 problem.options = optimoptions('fsolve','Display','iter-detailed',...
     'Algorithm', 'trust-region-dogleg','TolX',tol,'TolFun',tol,...
-    'Jacobian','on'); % we know how to compute Jacobiam now. So turn it on
+    'Jacobian','on','MaxIter',maxIter); % we know how to compute Jacobiam now. So turn it on
 problem.objective = @(x) fsolveFun(x,n,W0,Aphi,Aw,mtx,Index,RHSphi,RHSw,R,parameters);
 problem.x0 = x0;
 problem.solver = 'fsolve';

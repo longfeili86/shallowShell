@@ -1,4 +1,4 @@
-function x=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
+function [x,fval,exitflag,output]=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
 % solve the coupled problem using newton iteration methods
 % Input: x0 is the initial guess for both phi and w 
 % -- Longfei Li
@@ -11,6 +11,12 @@ maxIter=parameters.maxIter;
 tol=parameters.tol;
 useLU=parameters.useLU;
 solver=parameters.solver;
+
+relaxFactor=parameters.relaxFactor;
+if(relaxFactor<1.)
+    fprintf('%sRelax newton iteration with factor=%f\n',infoPrefix,relaxFactor);
+    assert(relaxFactor>0 && relaxFactor<=1.,'relaxFactor has to be between 0 and 1.');
+end
 
 isConverged=false;
 numberOfLevels=4; % we need 4 levels to estimate conv rate of iteration
@@ -46,7 +52,7 @@ while(~isConverged && step<=maxIter)
     % evaluate Jacobian at current time
     Jcur=JEvaluation(xSol(:,cur),n,W0,Aphi,Aw,mtx,Index,parameters);   
     Res = -Jcur\F(:,cur);
-    xSol(:,new)=Res+xSol(:,cur);
+    xSol(:,new)=relaxFactor*Res+xSol(:,cur); % relax netwon
     F(:,new)=FEvaluation(xSol(:,new),n,Aphi,Aw,RHSphi,RHSw,R,parameters);
 
     tStep(step)=toc(tStart);
@@ -61,21 +67,25 @@ while(~isConverged && step<=maxIter)
     [isConverged,res,p(step)]=checkConvergence(step,tol,xSol,n,tStep(step));
 end
 
-if(~isConverged)
-    fprintf('%sIteration does not converge after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter);
-    fprintf('%sres=%e, tol=%e\n',infoPrefix,res,tol);
-    error('abort newtonSolve');
+
+output.algorithm=solver;
+output.iterations=step;
+
+message=sprintf('res=%e,tol=%e, maxIter=%i\n',res,tol,maxIter);
+message=sprintf('%sAverage time used per iteration step is %e sec\n',message,mean(tStep));
+message=sprintf('%sEstimated computational order of convergence p=%f\n',message,mean(p(5:end)));
+output.message=message;
+
+ 
+if(isConverged)
+    exitflag=1;
 else
-    fprintf('%s-----------Iteration Summary-----------\n',infoPrefix); 
-    fprintf('%sIteration converges after %i steps (maxIter=%i)\n',infoPrefix,step,maxIter); 
-    fprintf('%sAverage time used per iteration step is %e sec\n',infoPrefix,mean(tStep)); 
-    fprintf('%sEstimated computational order of convergence p=%f\n',infoPrefix,mean(p(5:end)));    
-    x=xSol(:,new); % solution
-    %get fval so we can compare with newton or fsolve:
-    fval=sqrt(sum(F(:,new).^2)); % use L2 norm for now
-    fprintf('%sres=%e, fval=%e, tol=%e\n',infoPrefix,res,fval,tol);
-    fprintf('%s---------------------------------------\n',infoPrefix); 
+    exitflag=0;
 end
+
+x=xSol(:,new); % solution (could be unconverged)
+fval=F(:,new); 
+
 
 
 
