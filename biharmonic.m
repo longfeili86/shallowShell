@@ -6,8 +6,8 @@ function exitflag=biharmonic(parameters)
 %         1: w=0, d^2wdn^2=0
 %         2: w=0, dwdn=0
 %         3: d^2wdn^2+nu*d^2ds^2=0, d^3wdn^3+(2-nu)d^3wdnds^2=0
-%         4: mixed CS to do FINISH ME ......
-%         5: mixed CF to do FINISH ME ......
+%         4: mixed CS
+%         5: mixed CF
 %   output:
 %           exitflag>0  success
 %           exitflag<0  failure
@@ -48,6 +48,15 @@ mtx = getDiffMatrix(nx,ny,hx,hy);
 
 % define index
 Index=getIndex(nx,ny);
+
+% define a transition function for mixed bc types
+% and pass it to parameters. Here we assume the clamped region are the same
+% on both top and bottom regions
+if(bcType==4 || bcType==5)
+    xc=parameters.xc;
+    rc=parameters.rc;
+    parameters.omega=smoothTrans(Xvec(Index.BoundaryT),xc,rc);
+end
 
 % define given functions
 fprintf('%sGetting definitions of all the given functions from file: %s.m\n',infoPrefix,funcDefFile);

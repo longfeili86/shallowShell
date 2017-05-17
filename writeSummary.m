@@ -14,7 +14,7 @@ else
     fprintf('Iteration converges after %i steps\n',iterations); 
 end
 fprintf('L2 norm of fval=%e, Lmax norm of fval=%s\n',sqrt(sum(fval.^2)/length(fval)),max(abs(fval)));
-fprintf('%s',message);
+fprintf('%s\n',message);
 fprintf('-------------------------------------------------------------\n');
 
 end

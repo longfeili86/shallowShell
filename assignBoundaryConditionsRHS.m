@@ -43,6 +43,28 @@ function RHS=assignBoundaryConditionsRHS(RHS,Index,parameter)
         RHS(Index.GhostB2)=0;
         %corner conditions for free bc
         RHS(Index.UsedGhostCorners)=0.;
+    elseif(parameter.bcType==4) % cs
+        RHS(Index.Boundary) = 0;
+        RHS(Index.GhostL1) = 0; 
+        RHS(Index.GhostR1) =  0; 
+        RHS(Index.GhostB1) = 0;    
+        RHS(Index.GhostT1) =  0;
+        RHS(Index.Ghost2) = 0; %extrapolation rhs=0        
+    elseif(parameter.bcType==5) % CF 
+        %left boundary
+        RHS(Index.GhostL1)=0;
+        RHS(Index.GhostL2)=0;
+        %right boundary   
+        RHS(Index.GhostR1)=0;
+        RHS(Index.GhostR2)=0;
+        %top boundary   
+        RHS(Index.GhostT1)=0;
+        RHS(Index.GhostT2)=0;
+        %bottom boundary   
+        RHS(Index.GhostB1)=0;
+        RHS(Index.GhostB2)=0;
+        %corner conditions for free bc
+        RHS(Index.UsedGhostCorners)=0.;        
     end
 
 

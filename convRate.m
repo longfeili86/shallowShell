@@ -42,8 +42,10 @@ end
 
 
 rf=rStart:rEnd; % do conv study on these refinements
-bcNames={'Supported','Clamped','Free'};% avaible bcs
-numBCTypes=3;
+bcNames={'Supported','Clamped','Free','CS','CF'};% avaible bcs
+numBCTypes=5;
+bcTypes=1:numBCTypes; % do conv test for these bcTypes
+
 
 gn=@(i) 2.^(rf(i));
 numGrids=@(i) gn(i).*10;
@@ -53,7 +55,7 @@ if(strcmp(caseName,'coupledSystem'))
         linearity='Linear';
     end
     resultsDir=@(i,bcType,testName) sprintf('%s%s%s%sG%i',solver,linearity,testName,bcNames{bcType},gn(i));
-    numBCTypes=2; % free bc needs more resolution. We deal it separately
+    bcTypes=setdiff(bcTypes,3); % free bc needs more resolution. We deal it separately
 else
     resultsDir=@(i,bcType,testName) sprintf('%s%sG%i',testName,bcNames{bcType},gn(i));
 end
@@ -75,7 +77,7 @@ if(isRun)
         getCMD = @(i,bcType,testName) sprintf('runShell -case=%s -funcDefFile=%s -nx=%i -ny=%i -bcType=%i -noplot -f=%s',...
             caseName,funcDefFilename,numGrids(i),numGrids(i),bcType,resultsDir(i,bcType,testName));
     end
-    for bcType=1:numBCTypes
+    for bcType=bcTypes
         for i=1:length(rf)
             cmd=getCMD(i,bcType,testName);
             fprintf('--running--: %s\n',cmd);
@@ -87,7 +89,7 @@ end
 % plot convRate
 if(isPlot)    
     % read data 
-    for bcType=1:numBCTypes
+    for bcType=bcTypes
         for i=1:length(rf)
             load(sprintf('%s/results.mat',resultsDir(i,bcType,testName)));
             wErrorL2.(bcNames{bcType})(i)=norm(WerrPlot(:),2)/sqrt(length(WerrPlot(:)));
@@ -107,14 +109,17 @@ if(isPlot)
     setupFigure;
     loglog(hh,(hh).^2,'k','LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
     hold on
-        for bcType=1:numBCTypes
+        counter=0;
+        for bcType=bcTypes
         loglog(hh,wErrorLmax.(bcNames{bcType}),strcat(colors{bcType},'-+'),'LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
-        lgdNames{bcType}=strcat(bcNames{bcType},' ($w$)');
+        counter=counter+1;
+        lgdNames{counter}=strcat(bcNames{bcType},' ($w$)');
         end
         if(strcmp(caseName,'coupledSystem'))
-            for bcType=1:numBCTypes
-            loglog(hh,phiErrorLmax.(bcNames{bcType}),strcat(colors{bcType},'->'),'LineWidth',figOptions.LW,'MarkerSize',figOptions.MS); 
-            lgdNames{bcType+numBCTypes}=strcat(bcNames{bcType},' ($\phi$)');
+            for bcType=bcTypes
+            loglog(hh,phiErrorLmax.(bcNames{bcType}),strcat(colors{bcType},'->'),'LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
+            counter=counter+1;
+            lgdNames{counter}=strcat(bcNames{bcType},' ($\phi$)');
             end
         end
     hold off
@@ -136,14 +141,17 @@ if(isPlot)
     setupFigure;
     loglog(hh,(hh).^2,'k','LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
     hold on
-        for bcType=1:numBCTypes
+        counter=0;
+        for bcType=bcTypes
         loglog(hh,wErrorL2.(bcNames{bcType}),strcat(colors{bcType},'-+'),'LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
-        lgdNames{bcType}=strcat(bcNames{bcType},' ($w$)');
+        counter=counter+1;
+        lgdNames{counter}=strcat(bcNames{bcType},' ($w$)');
         end
         if(strcmp(caseName,'coupledSystem'))
-            for bcType=1:numBCTypes
+            for bcType=bcTypes
             loglog(hh,phiErrorL2.(bcNames{bcType}),strcat(colors{bcType},'->'),'LineWidth',figOptions.LW,'MarkerSize',figOptions.MS); 
-            lgdNames{bcType+numBCTypes}=strcat(bcNames{bcType},' ($\phi$)');
+            counter=counter+1;
+            lgdNames{counter}=strcat(bcNames{bcType},' ($\phi$)');
             end
         end
     hold off

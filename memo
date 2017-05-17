@@ -20,6 +20,31 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+05/17/2017: try lower branch runs
+runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-03 -bcType=5 -nx=40 -ny=40 -maxIter=100 -f=bifurcationTest1c -funcDefFile=bifurcationFuncDef3 -xi=-4000 
+
+
+05/16/2017: implemented mixed bc CS and CF using a smooth-transition function omega
+bifurcationRun -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=100 -tol=1e-3 -solver1=fsolve -solver2=fsolve -solver3=fsolve  
+runShell -case=coupledSystem -funcDefFile=coupledSystemTestFuncDef -solver=exPicard -nx=40 -ny=40 -bcType=4 -f=testResults -nonlinear -tol=1e-3 -maxIter=100
+
+convRate now includes bcType 4 and 5. For biharmonic, we compute convRate for bcTypes=[1,2,3,4,5]
+                                      For coupledSystem, we compute convRate for bcTypes=[1,2,4,5]. Free BC is too hard for coupled system
+
+NOTE: newton and fsolve wont converge for bcType=4 and 5
+      both picard methods works well
+
+
+05/12/2017:
+new function: bifurcationRun -options
+to plot bifurcation results:
+plotBifurcation(resultsName,color,showIC,distBranch);
+color='r','g'...ect, to use this color
+distBranch=false to use different shape for different branch
+showIC=true to plot initial guess as well (optional)
+
+eg: plotBifurcation -f=bifurcationTest -showIC -color=g -distBranch
+
 05/08/2017:
 try 320*320 
 matlab -nodisplay -r 'bifurcationRun;exit;'>bifurcationNIN.log
@@ -54,7 +79,7 @@ runShell -case=coupledSystem -solver=newton -funcDefFile=bifurcationFuncDef -nx=
 
 05/04/2017:
 % test conv rate for free bc:
-runShell -noplot -case=coupledSystem -funcDefFile=coupledSystemTestFuncDef -solver=fsolve -funcDefFile=coupledSystemTestFuncDef -nx=320 -ny=320 -bcType=3 -f=testResultsFreeG32 -nonlinear -tol=1e-3 -maxIter=100
+runShell -noplot -case=coupledSystem -solver=fsolve -funcDefFile=coupledSystemTestFuncDef -nx=320 -ny=320 -bcType=3 -f=testResultsFreeG32 -nonlinear -tol=1e-3 -maxIter=100
 
 
 

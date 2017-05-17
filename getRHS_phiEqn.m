@@ -21,8 +21,8 @@ end
 
 bcTypeSaved=parameters.bcType; % save bcType
 
-if(parameters.bcType==3)
-    % for free bc, the phi eqn uses the clamped bc: phi=dphidn=0
+if(parameters.bcType==3 || parameters.bcType==5)
+    % for free bc and CF bc, the phi eqn uses the clamped bc: phi=dphidn=0
     % so we overwrite the bcType value here to reuse
     % the assignBoundaryConditionsRHS fucntion for the phi eqn as well
     parameters.bcType=2; 

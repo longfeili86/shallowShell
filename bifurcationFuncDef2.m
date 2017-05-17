@@ -14,5 +14,5 @@ w0=@(x,y) 0.3*(1.-(x - 0.5).^2 - (y -0.5).^2);
 
 % initial guess:
 if(~isReadIC)
-    wi=@(x,y) -30.*w0(x,y);
+    wi=@(x,y) 100.*w0(x,y);
 end

@@ -60,6 +60,9 @@ Xvec = myGrid.XX(:);%column vector
 Yvec = myGrid.YY(:);%column vector
 n=length(Xvec); % number of nodes
 
+
+
+
 % define diff matrix
 hx = myGrid.hx;
 hy = myGrid.hy;
@@ -67,6 +70,16 @@ mtx = getDiffMatrix(nx,ny,hx,hy);
 
 % define index
 Index=getIndex(nx,ny);
+
+% define a transition function for mixed bc types
+% and pass it to parameters. Here we assume the clamped region are the same
+% on both top and bottom regions
+if(bcType==4 || bcType==5)
+    xc=parameters.xc;
+    rc=parameters.rc;
+    parameters.omega=smoothTrans(Xvec(Index.BoundaryT),xc,rc);
+end
+
 
 % define given functions
 isReadIC=(~strcmp(readICResult1,'') || ~strcmp(readICFile,'')); % readIC=true if readICFile is non-empty or if readICResult1 is non-empty

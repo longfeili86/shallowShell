@@ -31,6 +31,8 @@ parameters.xa=0.;
 parameters.xb=1.;
 parameters.ya=0.;
 parameters.yb=1.;
+parameters.xc=0.5; % default clamped region center for mixed bc
+parameters.rc=0.1; % default clamped region radius for mixed bc
 % resolution nx by ny
 parameters.nx=10;
 parameters.ny=10;
@@ -108,7 +110,11 @@ for i=1:nargin
     elseif(strncmp(line,'-ya=',4))
         parameters.ya=sscanf(line,'-ya=%e');
     elseif(strncmp(line,'-yb=',4))
-        parameters.yb=sscanf(line,'-yb=%e'); 
+        parameters.yb=sscanf(line,'-yb=%e');
+    elseif(strncmp(line,'-xc=',4))
+        parameters.xc=sscanf(line,'-xc=%e'); 
+    elseif(strncmp(line,'-rc=',4))
+        parameters.rc=sscanf(line,'-rc=%e');         
     elseif(strncmp(line,'-nx=',4))
         parameters.nx=sscanf(line,'-nx=%i');  
     elseif(strncmp(line,'-ny=',4))
