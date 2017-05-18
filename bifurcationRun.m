@@ -93,7 +93,7 @@ while(ThermalLoading>xiMin && exitflag>0)
         counter=counter-1; 
     end
 end
-xiMin=ThermalLoading; % replace xiMin to where the top branch stopped
+%xiMin=ThermalLoading; % replace xiMin to where the top branch stopped
 
 nTop=counter;
 xiTop=ThermalLoading;
@@ -130,14 +130,15 @@ xiMiddle=ThermalLoading;
 
 
 % 3rd branch (lower): from xiMin -> xiMax with step dxi
+load(sprintf('%s%i%c/results.mat',resultsName,nTop,branches(1)),'x','xi');
+x0=-x; % use the negative results of the top branch as the initial guess for the lower branch
+dlmwrite('bifurIC3.dat',x0);
+
+xiMin=xi; % xiMin is where the top branch stopped
 counter=0;
 ThermalLoading=xiMin+dxi*counter;
 exitflag=1;
 b=3;
-
-load(sprintf('%s%i%c/results.mat',resultsName,nTop,branches(1)),'x');
-x0=-x; % use the negative results of the top branch as the initial guess for the lower branch
-dlmwrite('bifurIC3.dat',x0);
 
 while(ThermalLoading<xiMax && exitflag>0)
     ThermalLoading=xiMin+dxi*counter;

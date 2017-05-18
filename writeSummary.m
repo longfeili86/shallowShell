@@ -10,6 +10,8 @@ fprintf('algorithm: %s\n',algorithm);
 
 if(exitflag==0)
     fprintf('Iteration does not converge after %i steps (maxIter reached)\n',iterations);
+elseif(exitflag==-9999)
+    fprintf('Iteration stopped after %i steps because it is diverging.\n',iterations);  
 else
     fprintf('Iteration converges after %i steps\n',iterations); 
 end

@@ -38,6 +38,20 @@ if(exist('PHIplot','var'))
     end
 end
 
+if(exist('W0plot','var'))
+    figure
+    mySurf(Xplot,Yplot,W0plot,'$w_0$',contour);
+    if(savePlot)
+        printPlot(sprintf('w0%s',suffix),resultsDir);
+    end
+    % plot w+w0
+    figure
+    mySurf(Xplot,Yplot,Wplot+W0plot,'$w+w_0$',contour);
+    if(savePlot)
+        printPlot(sprintf('wPlusw0%s',suffix),resultsDir);
+    end        
+end
+
 if(exist('Fwplot','var'))
     figure
     mySurf(Xplot,Yplot,Fwplot,'$f_w$',contour);

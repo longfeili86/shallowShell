@@ -65,9 +65,12 @@ while(~isConverged && step<=maxIter)
 %     end
 
     [isConverged,res,p(step)]=checkConvergence(step,tol,xSol,n,tStep(step));
+    if(isConverged==-9999)
+        break;
+    end       
 end
 
-
+%prepare output stuff
 output.algorithm=solver;
 output.iterations=step;
 
@@ -76,16 +79,17 @@ message=sprintf('%sAverage time used per iteration step is %e sec\n',message,mea
 message=sprintf('%sEstimated computational order of convergence p=%f\n',message,mean(p(5:end)));
 output.message=message;
 
- 
-if(isConverged)
+if(isConverged==-9999)
+    exitflag=-9999;
+elseif(isConverged>0)
     exitflag=1;
 else
     exitflag=0;
-end
+end 
+
 
 x=xSol(:,new); % solution (could be unconverged)
 fval=F(:,new); 
-
 
 
 

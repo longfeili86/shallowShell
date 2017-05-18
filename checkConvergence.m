@@ -17,11 +17,14 @@ if(res<tol)
    isConverged=true; 
 end
 
-%if(res>1e15)
-%    error('Iteration is diverging. I am going to abort.');
-%end
-
 p=0; % estimated iteration conv rate
+
+if(res>1e15)
+   fprintf('%sIteration is diverging. I am going to stop iteration.\n',infoPrefix);
+   isConverged=-9999; % -9999 is the code for abort due to diverging
+   return
+end
+
 if(step>4)
     resCur=max(abs(x([Nphi,Nw],cur)-x([Nphi,Nw],prev)));
     resPrev=max(abs(x([Nphi,Nw],prev)-x([Nphi,Nw],prev2)));
