@@ -1,7 +1,9 @@
-function plotBifurcation(varargin)
+function h=plotBifurcation(varargin)
 
 % this function plot bifurcation from the saved results in resultsName
 % usage: plotBifurcation -f=<resultsName> (optional: -showIC -distBranch -color=<r> -savePlot)
+% output:
+%   handle of this plot
 % --Longfei Li
 resultsName=''; 
 savePlot=false;
@@ -51,14 +53,13 @@ for b=1:3 % branches
     if(distBranch)
         brachShape=branchShapes(b);
     end
-    plot(Xi,wc,strcat(color,brachShape),'LineWidth',figOptions.LW);
+    h=plot(Xi,wc,strcat(color,brachShape),'LineWidth',figOptions.LW);
     if(showIC)
         plot(Xi,wi,'k.','LineWidth',figOptions.LW);
     end
     set(gca,'FontSize',figOptions.FS);
 end
 hold off
-
 
 % save eps file
 if(savePlot)

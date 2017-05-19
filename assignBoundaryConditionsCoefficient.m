@@ -112,6 +112,8 @@ elseif (bcType==5) %CF
     A(Index.GhostB1(i),:)= omega(i).*I(Index.BoundaryB(i),:)+(1-omega(i)).*(diffMtx.Dyy(Index.BoundaryB(i),:)+nu*diffMtx.Dxx(Index.BoundaryB(i),:)) ; 
     A(Index.GhostB2(i),:)= -omega(i).*diffMtx.D0y(Index.BoundaryB(i),:)+(1-omega(i)).*(diffMtx.Dyyy(Index.BoundaryB(i),:)+(2-nu)*diffMtx.Dxxy(Index.BoundaryB(i),:)) ;   
     end
+else
+    error('Unknown bcType. We support bcTypes=[1,2,3,4,5]');
 end
 
 
