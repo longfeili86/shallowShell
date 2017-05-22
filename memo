@@ -2,7 +2,7 @@
 % memo: 
 % bcTypes: 0 periodic; 1 simply supported; 2 clamped edge; 3 free edge; 4 CS; 5 CF
 
-
+/
 % Shell code usages:
 %1. to run a test:
 runShell -nx=20 -ny=20 -bcType=3 -savePlot -f=<folderName>
