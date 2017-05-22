@@ -20,6 +20,13 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+05/22/2017: call batchRun to generate all results:
+batchRun.pl -run=convRate > batchRunConvRate.log
+batchRun.pl -run=bifurcation > batchRunBifurcation.log
+batchRun.pl -run=nonuniformTL > batchRunNonuniformTL.log
+
+
+
 05/19/2017: add option implicitFactor to combine ex and imPicard methods -implicitFactor=0.5
 
 

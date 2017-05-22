@@ -3,6 +3,7 @@ function bifurcationRun(varargin)
 infoPrefix='--bifurcationRun-- ';
 % default parameters
 bcType=1;
+isPlot=true;
 nx=40;
 ny=40;
 xiMin=-1650.;
@@ -25,6 +26,8 @@ for i=1:nargin
     line = varargin{i};
     if(strncmp(line,'-bcType=',7))
         bcType=sscanf(line,'-bcType=%i');
+    elseif(strcmp(line,'-noplot'))
+        isPlot=false;
     elseif(strncmp(line,'-nx=',4))
         nx=sscanf(line,'-nx=%i');
     elseif(strncmp(line,'-ny=',4))
@@ -189,12 +192,12 @@ fprintf('%sNumber results=%i\n',infoPrefix,nMiddle);
 fprintf('%sLower branch stopped at xi=%e\n',infoPrefix,xiLower);
 fprintf('%sNumber results=%i\n',infoPrefix,nLower);
 
-
-color='b';
-showIC=true;
-distBranch=true;
-plotBifurcation(resultsName,color,distBranch,showIC);
-
+if(isPlot)
+    color='b';
+    showIC=true;
+    distBranch=true;
+    plotBifurcation(resultsName,color,distBranch,showIC);
+end
 
 end
 
