@@ -13,10 +13,12 @@ A=mtx.BiDh;
 
 
 % we add -Lmatrix to A for imPicard solver and nonlinear problem
+% 20170519: add implicitFactor to combine ex and imPicard
+implicitFactor=parameters.implicitFactor;
 if(strcmp(parameters.solver,'imPicard') && ~parameters.isLinear)
-    A = A-getLMatrix(mtx,PHI);
+    A = A-implicitFactor*getLMatrix(mtx,PHI);
     if(~quiet)
-        fprintf('%sModify matrix of the w equation for implicit picard iteration\n',infoPrefix);
+        fprintf('%sModify matrix of the w equation for implicit picard iteration with implicit factor=%f\n',infoPrefix,implicitFactor);
     end
 end
 

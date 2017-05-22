@@ -12,6 +12,9 @@ tol=parameters.tol;
 useLU=parameters.useLU;
 solver=parameters.solver;
 
+% new: we add implicitFactor to combine exPicard and imPicard
+implicitFactor=parameters.implicitFactor;
+
 isConverged=false;
 numberOfLevels=4; % we need 4 levels to estimate conv rate of iteration
 

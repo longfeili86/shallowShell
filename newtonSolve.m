@@ -13,10 +13,6 @@ useLU=parameters.useLU;
 solver=parameters.solver;
 
 relaxFactor=parameters.relaxFactor;
-if(relaxFactor<1.)
-    fprintf('%sRelax newton iteration with factor=%f\n',infoPrefix,relaxFactor);
-    assert(relaxFactor>0 && relaxFactor<=1.,'relaxFactor has to be between 0 and 1.');
-end
 
 isConverged=false;
 numberOfLevels=4; % we need 4 levels to estimate conv rate of iteration

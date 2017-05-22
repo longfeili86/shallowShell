@@ -10,7 +10,12 @@ xiMax=0.;
 dxi=100;
 maxIter=100;
 tol=1e-6;
-relaxFactor=1.; % relaxation only implemented for newton. This value won't be seen by other methods
+relaxFactor1=1.; % relaxation only implemented for newton. This value won't be seen by other methods
+relaxFactor2=1.;
+relaxFactor3=1.;
+implicitFactor1=1.; % implicitFactor only for imPicard method. 1 for fully implicit, 0 for explicit
+implicitFactor2=1.;
+implicitFactor3=1.;
 solver1='fsolve'; %solver for top branch
 solver2='fsolve'; %solver for middle branch
 solver3='fsolve'; %solver for lower branch
@@ -34,8 +39,18 @@ for i=1:nargin
         maxIter=sscanf(line,'-maxIter=%i');
     elseif(strncmp(line,'-tol=',5))
         tol=sscanf(line,'-tol=%e'); 
-    elseif(strncmp(line,'-relaxFactor=',13))
-        relaxFactor=sscanf(line,'-relaxFactor=%e');    
+    elseif(strncmp(line,'-relaxFactor1=',13))
+        relaxFactor1=sscanf(line,'-relaxFactor1=%e');
+    elseif(strncmp(line,'-relaxFactor2=',13))
+        relaxFactor2=sscanf(line,'-relaxFactor2=%e');
+    elseif(strncmp(line,'-relaxFactor3=',13))
+        relaxFactor3=sscanf(line,'-relaxFactor3=%e');     
+    elseif(strncmp(line,'-implicitFactor1=',16))
+        implicitFactor1=sscanf(line,'-implicitFactor1=%e'); 
+    elseif(strncmp(line,'-implicitFactor2=',16))
+        implicitFactor2=sscanf(line,'-implicitFactor2=%e');  
+    elseif(strncmp(line,'-implicitFactor3=',16))
+        implicitFactor3=sscanf(line,'-implicitFactor3=%e');    
     elseif(strncmp(line,'-solver1=',9))
         solver1=line(10:end);
     elseif(strncmp(line,'-solver2=',9))
@@ -51,12 +66,14 @@ end
 
 branches=['a','b','c'];
 
-getOptions=@(solver,tol,bcType,nx,ny,maxIter,resultsName,counter,branch,funcDefFile,ThermalLoading)...
+getOptions=@(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsName,counter,branch,funcDefFile,ThermalLoading)...
         {'-case=coupledSystem',...
          '-nonlinear',...
          '-saveIC',...
          '-noplot',...
          sprintf('-solver=%s',solver),...
+         sprintf('-implicitFactor=%e',implicitFactor),...
+         sprintf('-relaxFactor=%e',relaxFactor),...
          sprintf('-tol=%e',tol),...
          sprintf('-bcType=%i',bcType),...
          sprintf('-nx=%i',nx),...
@@ -76,7 +93,7 @@ b=1;
 while(ThermalLoading>xiMin && exitflag>0)
     ThermalLoading=xiMax-dxi*counter;
     counter=counter+1;
-    options=getOptions(solver1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
+    options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
     if(counter>2) % use two previous results as initial guess
         options=[options,...
             {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
@@ -107,7 +124,7 @@ b=2;
 while(ThermalLoading<xiMax && exitflag>0)
     ThermalLoading=xiMin+dxi*counter;
     counter=counter+1;
-    options=getOptions(solver2,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
+    options=getOptions(solver2,implicitFactor2,relaxFactor2,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
     if(counter>2) % use two previous results as initial guess
         options=[options,...
             {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
@@ -143,7 +160,7 @@ b=3;
 while(ThermalLoading<xiMax && exitflag>0)
     ThermalLoading=xiMin+dxi*counter;
     counter=counter+1;
-    options=getOptions(solver3,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
+    options=getOptions(solver3,implicitFactor3,relaxFactor3,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
     if(counter>2) % use two previous results as initial guess
         options=[options,...
             {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...

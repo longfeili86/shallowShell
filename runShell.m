@@ -26,6 +26,8 @@ parameters.bcType=2; % bcTypes:0 periodic; 1 simply supported; 2 clamped edge; 3
 % parameters for coupled system
 parameters.isLinear=true; % flag indicate if the coupled system is linear or not
 parameters.solver='fsolve'; % available solvers for the coupled system: 1. fsolve 2. exPicard 3. imPicard 
+parameters.relaxFactor=1.; % relaxation factor for newton. no relaxation by default
+parameters.implicitFactor=1.; % implicitFacotor for imPicard. fully implicit by default
 % domain=[xa,xb]x[ya,yb]
 parameters.xa=0.;
 parameters.xb=1.;
@@ -63,9 +65,9 @@ parameters.readICResult2='';
 
 
 %iteration parameters
-parameters.maxIter=500;
+parameters.maxIter=200;
 parameters.tol=1e-6;
-parameters.relaxFactor=1.; % relaxation factor
+
 
 % physical parameters
 parameters.nu=.1; % poisson ratio is ranging from 0.0 to 0.5
@@ -102,7 +104,11 @@ for i=1:nargin
     elseif(strcmp(line,'-nonlinear'))
         parameters.isLinear=false;
     elseif(strncmp(line,'-solver=',8))
-        parameters.solver=line(9:end);         
+        parameters.solver=line(9:end);  
+    elseif(strncmp(line,'-relaxFactor=',13))
+        parameters.relaxFactor=sscanf(line,'-relaxFactor=%e');
+    elseif(strncmp(line,'-implicitFactor=',16))
+        parameters.implicitFactor=sscanf(line,'-implicitFactor=%e');        
     elseif(strncmp(line,'-xa=',4))
         parameters.xa=sscanf(line,'-xa=%e');
     elseif(strncmp(line,'-xb=',4))
@@ -132,9 +138,7 @@ for i=1:nargin
     elseif(strncmp(line,'-maxIter=',9))
         parameters.maxIter=sscanf(line,'-maxIter=%i');
     elseif(strncmp(line,'-tol=',5))
-        parameters.tol=sscanf(line,'-tol=%e'); 
-    elseif(strncmp(line,'-relaxFactor=',13))
-        parameters.relaxFactor=sscanf(line,'-relaxFactor=%e');         
+        parameters.tol=sscanf(line,'-tol=%e');          
     elseif(strncmp(line,'-D=',3))
         parameters.D=sscanf(line,'-D=%e');      
     elseif(strncmp(line,'-nu=',4))

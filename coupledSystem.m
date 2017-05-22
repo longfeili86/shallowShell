@@ -38,6 +38,10 @@ useLU=parameters.useLU;
 isLinear=parameters.isLinear;
 solver=parameters.solver;
 
+relaxFactor=parameters.relaxFactor;
+implicitFactor=parameters.implicitFactor;
+
+
 maxIter=parameters.maxIter;
 tol=parameters.tol;
 
@@ -146,7 +150,13 @@ end
 fprintf('%sThe coupled system is %s\n',infoPrefix,sysInfo);
 fprintf('%sbcType:  %i\n',infoPrefix,bcType);
 fprintf('%sUsing solver: %s\n',infoPrefix,solver);
-
+if(strcmp(solver,'imPicard'))
+    fprintf('%simplicitFactor = %f\n',infoPrefix,implicitFactor);  
+    assert(implicitFactor>=0 && implicitFactor<=1.,'implicitFactor has to be:  0<=implicitFactor<=1.');
+elseif(strcmp(solver,'newton'))
+   fprintf('%srelaxFactor = %f\n',infoPrefix,relaxFactor); 
+   assert(relaxFactor>0 && relaxFactor<=1.,'relaxFactor has to be: 0<relaxFactor<=1.');
+end
 
 
 

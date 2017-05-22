@@ -20,6 +20,9 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+05/19/2017: add option implicitFactor to combine ex and imPicard methods -implicitFactor=0.5
+
+
 05/17/2017: try lower branch runs
 runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-03 -bcType=5 -nx=40 -ny=40 -maxIter=100 -f=bifurcationTest1c -funcDefFile=bifurcationFuncDef3 -xi=-4000 
 runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-03 -bcType=5 -nx=40 -ny=40 -maxIter=100 -f=bifurcationTest1c -funcDefFile=coupledSystemNonUniformTLFuncDef

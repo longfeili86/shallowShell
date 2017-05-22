@@ -16,11 +16,13 @@ function RHS=getRHS_wEqn(W,PHI,F,W0,mtx,parameters,Index)
 RHS = getLOperator(mtx,W0,PHI)+F;
 
 addNonlinearTerm = true;
+nonlinearFactor=1.; % the portion of the nonlinear term that will be added to the RHS
 if(strcmp(parameters.solver,'imPicard'))
-    addNonlinearTerm=false; % for imPicard solver,we add the NL term to the LHS
+    implicitFactor=parameters.implicitFactor;
+    nonlinearFactor=1.-implicitFactor; % for imPicard solver,we alread added  the implicitFactor*NL term to the LHS
 end
-if(~parameters.isLinear && addNonlinearTerm) % for nonlinear problems
-    RHS = RHS + getLOperator(mtx,W,PHI);
+if(~parameters.isLinear) % for nonlinear problems
+    RHS = RHS + nonlinearFactor*getLOperator(mtx,W,PHI);
 end
 
 RHS=assignBoundaryConditionsRHS(RHS,Index,parameters);
