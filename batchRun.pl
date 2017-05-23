@@ -9,8 +9,9 @@ use Getopt::Long qw(GetOptions);
 $rStart=1;
 $rEnd=6;
 $run="convRate"; #convRate or bifurcation
+$solver="";
 
-GetOptions('rStart=i'=>\$rStart,'rEnd=i'=>\$rEnd,'run=s'=>\$run);
+GetOptions('rStart=i'=>\$rStart,'rEnd=i'=>\$rEnd,'run=s'=>\$run,'solver=s'=>\$solver);
 print("$run\n");
 
 # convRate commands
@@ -34,37 +35,22 @@ print("$run\n");
 $nx=320; 
 $ny=320;
 @bifCmds= (
-    "bifurcationRun -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExSupported",
-    "bifurcationRun -bcType=2 -xiMin=-8000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExClamped",
-    "bifurcationRun -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExFree",
-    "bifurcationRun -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCS",
-    "bifurcationRun -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCF"
+    "bifurcationRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExSupported",
+    "bifurcationRun -noplot -bcType=2 -xiMin=-8000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExClamped",
+    "bifurcationRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExFree",
+    "bifurcationRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCS",
+    "bifurcationRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCF"
 );
 
 # non-uniform thermal loading
 $nx=320;
 $ny=320;
 @nonuniformTLCmds=(
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-05 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFsolveSupported",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-05 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFsolveClamped",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-05 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFsolveFree",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-05 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFsolveCS",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=fsolve -tol=1.000000e-05 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFsolveCF",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1.000000e-05 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLNewtonSupported",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1.000000e-05 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLNewtonClamped",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1.000000e-05 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLNewtonFree",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1.000000e-05 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLNewtonCS",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1.000000e-05 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLNewtonCF",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=exPicard -tol=1.000000e-05 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLExPicardSupported",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=exPicard -tol=1.000000e-05 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLExPicardClamped",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=exPicard -tol=1.000000e-05 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLExPicardFree",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=exPicard -tol=1.000000e-05 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLExPicardCS",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=exPicard -tol=1.000000e-05 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLExPicardCF",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=imPicard -tol=1.000000e-05 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLImPicardSupported",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=imPicard -tol=1.000000e-05 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLImPicardClamped",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=imPicard -tol=1.000000e-05 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLImPicardFree",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=imPicard -tol=1.000000e-05 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLImPicardCS",
-"runShell -case=coupledSystem -nonlinear -saveIC -solver=imPicard -tol=1.000000e-05 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLImPicardCF"
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLSupported_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFClamped_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFFree_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFCS_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFCF_$solver"
 );
 
 
@@ -84,6 +70,7 @@ elsif($run eq "bifurcation")
 elsif($run eq "nonuniformTL")
 {
     @cmds=@nonuniformTLCmds;
+    $run.=$solver;
 }
 else
 {

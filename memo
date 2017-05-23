@@ -23,7 +23,10 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 05/22/2017: call batchRun to generate all results:
 batchRun.pl -run=convRate > batchRunConvRate.log
 batchRun.pl -run=bifurcation > batchRunBifurcation.log
-batchRun.pl -run=nonuniformTL > batchRunNonuniformTL.log
+batchRun.pl -run=nonuniformTL -solver=fsolve > batchRunNonuniformTLFsolve.log
+batchRun.pl -run=nonuniformTL -solver=newton > batchRunNonuniformTLNewton.log
+batchRun.pl -run=nonuniformTL -solver=exPicard > batchRunNonuniformTLExPicard.log
+batchRun.pl -run=nonuniformTL -solver=imPicard > batchRunNonuniformTLImPicard.log
 
 
 
