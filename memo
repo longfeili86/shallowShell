@@ -20,7 +20,8 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+05/27 /2017: Pseudo-Arclength Continuation (PAC) method with dynamics choice of ds is working now. Need more test. 
+use bifurcationPACRun -dxi=50 -bcType=1 ... to test the PAC method. So far seems working for byType=1,2,4
 
 
 05/26/2017: try feed in picard solution to newton as ic to see if newton works for the nonuniform TL case for bcTypes=3,4,5

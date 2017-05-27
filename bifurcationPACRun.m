@@ -131,6 +131,7 @@ xi=xiMin;
 reduceTimes=0; % counting reduce times.
 reduceMax=10; % max number of time allowed to reduce ds;
 counterReduced=-999; % counter for the number of computations using reduced ds. if negative, means ds is not reduced
+reduceFactor=10;
 while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
     counter=counter+1;
     options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
@@ -155,7 +156,7 @@ while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
         rmdir(resultDir,'s');
         counter=counter-1; 
         if(exitflag==0) % maxIter reached try reduce ds by half
-            ds=ds/2;
+            ds=ds/reduceFactor;
             fprintf('$^&*&^$^&* reducing ds to %e\n',ds);
             pause(0.1);
             exitflag=1;  % change exitflag so we can continue the iteration with smaller ds
@@ -169,7 +170,7 @@ while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
     end
     if(counterReduced>5)
         reduceTimes=reduceTimes-1;
-        ds=ds*2; % gradually going back to original ds
+        ds=ds*reduceFactor; % gradually going back to original ds
         if(ds==dxi)
             counterReduced=-999; % ds is now back to original
             reduceTimes=0;
