@@ -47,10 +47,10 @@ $nx=320;
 $ny=320;
 @nonuniformTLCmds=(
 "runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLSupported_$solver",
-"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFClamped_$solver",
-"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFFree_$solver",
-"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFCS_$solver",
-"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFCF_$solver"
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLClamped_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=3 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLFree_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=4 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLCS_$solver",
+"runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=5 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLCF_$solver"
 );
 
 

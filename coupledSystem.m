@@ -56,6 +56,9 @@ readICResult1=parameters.readICResult1;
 readICResult2=parameters.readICResult2;
 
 xi=parameters.xi; %thermal loading
+
+usePAC=parameters.usePAC;
+
 % preprocess
 
 % define grid
@@ -92,32 +95,53 @@ run(funcDefFile); % f.w(x,y), f.phi(x,y) and w0(x,y) are defined here
 Fphi=f.phi(Xvec,Yvec);
 Fw=f.w(Xvec,Yvec);
 W0=w0(Xvec,Yvec);
-isICFuncDefined=exist('wi','var'); % isICFuncDefined=true if a function_handle wi=@(x,y) is defined in funcDef
-if( isICFuncDefined && ~isReadIC) % get ic from the defined function_handle
-    fprintf('%sComputing initial guess from function wi(x,y) defined in %s.m\n',infoPrefix,funcDefFile);   
-    Wi = wi(Xvec,Yvec); % evaluate initial guess at nodes. 
-elseif(~isICFuncDefined && isReadIC) % get ic from data file
-    if( ~strcmp(readICFile,''))
-        ICFileName=sprintf('%s.dat',readICFile);
-        fprintf('%sReading in initial guess from data file: %s\n',infoPrefix,ICFileName);      
-        x0=dlmread(ICFileName); % the saved ic for all solutions now
-    elseif(~strcmp(readICResult1,''))
-        x0=readICfromSavedResults(xi,readICResult1,readICResult2);  
+xOld=0.;dx=0.; % this is needed by PAC. Set zero otherwise
+if(~usePAC)
+    isICFuncDefined=exist('wi','var'); % isICFuncDefined=true if a function_handle wi=@(x,y) is defined in funcDef
+    if( isICFuncDefined && ~isReadIC) % get ic from the defined function_handle
+        fprintf('%sComputing initial guess from function wi(x,y) defined in %s.m\n',infoPrefix,funcDefFile);   
+        Wi = wi(Xvec,Yvec); % evaluate initial guess at nodes. 
+    elseif(~isICFuncDefined && isReadIC) % get ic from data file
+        if( ~strcmp(readICFile,''))
+            ICFileName=sprintf('%s.dat',readICFile);
+            fprintf('%sReading in initial guess from data file: %s\n',infoPrefix,ICFileName);      
+            x0=dlmread(ICFileName); % the saved ic for all solutions now
+        elseif(~strcmp(readICResult1,''))
+            x0=readICfromSavedResults(xi,readICResult1,readICResult2);  
+        else
+            error('something wrong with readIC\n');
+        end
+        assert((length(x0)==2*n || length(x0)==2*n+3),'Error: size of the read-in initial guess does not match the grid');
+    elseif(isICFuncDefined && isReadIC)
+        error('Both an IC data file and an IC function are given. I do not know which one to use. Specify only one or none to use W0 by default');
     else
-        error('something wrong with readIC\n');
+        fprintf('%sUsing w0 as initial guess\n',infoPrefix);           
+        Wi=W0;  % if no initial guess is specified, use W0 as initial guess
     end
-    assert((length(x0)==2*n || length(x0)==2*n+3),'Error: size of the read-in initial guess does not match the grid');
-elseif(isICFuncDefined && isReadIC)
-    error('Both an IC data file and an IC function are given. I do not know which one to use. Specify only one or none to use W0 by default');
 else
-    fprintf('%sUsing w0 as initial guess\n',infoPrefix);           
-    Wi=W0;  % if no initial guess is specified, use W0 as initial guess
+    fprintf('%sUse Pseduo-Arclength Continuation (PAC) Method\n',infoPrefix);
+    assert(~strcmp(readICResult1,'') && ~strcmp(readICResult2,'')) % we must provide two previous solutions
+    load(sprintf('%s/results.mat',readICResult1),'x','xi');
+    xOld=[x;xi];
+    load(sprintf('%s/results.mat',readICResult2),'x','xi');
+    xOlder=[x;xi];
+    dsOld=sqrt(sum((xOld-xOlder).^2));
+    fprintf('%scomputed ds=%e\n',infoPrefix,dsOld);
+    dx=(xOld-xOlder)/dsOld;
+    dx=dx/norm(dx); % normalize it
+    x0=xOld+dx*parameters.ds;
 end
-
-
 %RHSs: bc are already implemented inside of getRHS functions
 RHSphi=@(w,phi) getRHS_phiEqn(w,phi,Fphi,W0,mtx,parameters,Index);
 RHSw=@(w,phi)   getRHS_wEqn(w,phi,Fw,W0,mtx,parameters,Index);
+
+% initial guess for w is known, we obtain initial guess for the whole 
+% system x0 by using 1 step of picard:
+if(exist('Wi','var')) 
+    Aphi = getMTX_phiEqn(Index,mtx,parameters);
+    x0=getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
+end
+
 % additional RHS for augemented system (free bc)
 R =zeros(3,1); 
 if(bcType==3)
@@ -130,13 +154,6 @@ if(bcType==3)
         R=Q'*addRHS; 
     end
     fprintf('%sFree BC additional rhs: r1=%f;r2=%f;r3=%f\n',infoPrefix,R(1),R(2),R(3));
-end
-
-% initial guess for w is known, we obtain initial guess for the whole 
-% system x0 by using 1 step of picard:
-if(exist('Wi','var')) 
-    Aphi = getMTX_phiEqn(Index,mtx,parameters);
-    x0=getInitialGuess(n,Wi,Aphi,RHSphi,parameters);
 end
 
 
@@ -160,14 +177,12 @@ end
 
 
 
-
-
 % solve the coupled system
 if(strcmp(solver,'fsolve'))
-    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,parameters);   
+    problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,parameters,xOld,dx);   
     [x,fval,exitflag,output] = fsolve(problem);
 elseif(strcmp(solver,'newton'))
-    [x,fval,exitflag,output]=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % newton solve
+    [x,fval,exitflag,output]=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R,xOld,dx); % newton solve
 elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
     [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
 else
@@ -187,6 +202,12 @@ if(bcType==3)
     lambda = x(Nlambda); 
      fprintf('%sFree BC additional variables: lambda1=%e, lambda2=%e, lambda3=%e\n',...
         infoPrefix,lambda(1),lambda(2),lambda(3));
+end
+
+if(usePAC)
+    xi=x(end);  % the last solution is xi
+    x=x(1:end-1);
+    fprintf('%sPAC solution xi=%e\n',infoPrefix,xi);
 end
 
 % check the solutions at unused points: must be zero

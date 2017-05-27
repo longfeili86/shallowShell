@@ -1,4 +1,4 @@
-function J=JEvaluation(x,n,W0,Aphi,Aw,mtx,Index,parameters)
+function J=JEvaluation(x,n,W0,Aphi,Aw,mtx,Index,parameters,dx)
 % this function computes the jacobian matrix of F(x) at x
 %  Fp = Aphi*phi+0.5*L[w,w]+L[w0,w]         phi equation
 %  Fw = Aw*w-L[w,phi]-L[w0,phi]             w equation
@@ -54,5 +54,15 @@ end
 
 J = [Jpp,Jpw;
      Jwp,Jww];
+ 
+% augment J for PAC method 
+if(parameters.usePAC) 
+    Lpx = ones(n,1); % xi derivatives of phi eqns
+    Lpx=assignBoundaryConditionsLMatrix(Lpx,Index,parameters); 
+    J = [J,[Lpx;zeros(n+nadd,1)];
+         dx'];
+end
+
+ 
 
 end

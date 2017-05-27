@@ -68,6 +68,35 @@ for i=1:length(Cases)
 end
 
    
+% plot bifurcation results
+setupFigure;
+colors='rbkcm';
+bcNames={'Supported','Clamped','Free','CS','CF'};
+hold on
+for b=1:length(bcNames)
+    hh(b)=plotBifurcation(strcat('-f=bifurcationExImEx',bcNames{b}),strcat('-color=',colors(b)));
+end
+hold off
+box on
+legend(hh,bcNames,'FontSize',figOptions.FS,'Location','best');
+printPlot('bifurcationExImEx');
+close all
+movefile('*.eps',destination);
+
+%plot nonuniform thermal loading case:
+solvers={'exPicard','imPicard','newton','fsolve'};
+for k=1:length(solvers)
+for i=1:length(bcNames)
+  source=strcat('nonuniformTL',bcNames{i},'_',solvers{k});
+  arg1=strcat('-f=',source);
+  plotSavedResults(arg1);
+  plotSavedResults(arg1,'-contour');
+  close all
+  moveFigureInSavedResults(source,destination);
+end
+end
+
+
 
 
 

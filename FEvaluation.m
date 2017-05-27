@@ -1,5 +1,8 @@
-function F=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,parameters)
+function F=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,Index,parameters,xOld,dx)
 % evaluate the F function
+%
+% optional input: nearby solutions and its derivative xOld and dx, needed by the normalization eqn
+% for the PAC method
 %
 % -- Longfei Li
 
@@ -19,6 +22,18 @@ if(parameters.bcType==3) % w eqn is singular, we need extra equations for lambda
     F([Nw,Nlambda],1) = Aw*[w;lambda]-[RHSw(w,phi);R]; % w + lambda eqn
 else
     F(Nw,1) = Aw*w-RHSw(w,phi); % w eqn
+end
+
+% 20170523: new for pseudo-arclength continuation (PAC) method:
+% if use pseudo-arclength continuation method, we add an additial unknown vxi
+% to the phi eqn and an additional normalization equation
+if(parameters.usePAC)
+    ds=parameters.ds;
+    vxi(1:length(Nphi),1)=x(end); % we need add to vxi to each of phi eqautions 
+    vxi=assignBoundaryConditionsRHS(vxi,Index,parameters); 
+    F(Nphi,1)= F(Nphi,1)+vxi;
+    nE=length(F); % number of equations
+    F(nE+1,1)= dx'*(x-xOld)-ds;
 end
 
 

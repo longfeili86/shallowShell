@@ -9,7 +9,6 @@ if(~strcmp(resultsDir2,''))
 
     % use two levels of previous 
     fprintf('%sOtain initial guess using TWO previously saved results: %s and %s\n',infoPrefix,resultsDir1,resultsDir2);
-
     load(sprintf('%s/results.mat',resultsDir1),'x','xi');
     xOld=x;
     xiOld=xi;
@@ -21,8 +20,8 @@ if(~strcmp(resultsDir2,''))
     x0= (xOld-xOld2)/(xiOld-xiOld2)*(xiNew-xiOld)+xOld;
 
 else
-    % use two levels of previous 
-    fprintf('%sOtain initial guess using O previously saved results: %s\n',infoPrefix,resultsDir1);
+    % use previous results
+    fprintf('%sObtain initial guess using previously saved results: %s\n',infoPrefix,resultsDir1);
     load(sprintf('%s/results.mat',resultsDir1),'x');
     x0=x;
 end

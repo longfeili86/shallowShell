@@ -11,4 +11,6 @@ f.w=@(x,y) 0.*x+0.*y;
 w0=@(x,y) 0.1-0.4*(y-0.5).^2;
 
 % initial guess:
+if(~isReadIC)
 wi=@(x,y) w0(x,y);
+end

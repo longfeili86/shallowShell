@@ -19,6 +19,10 @@ elseif (bcType==2) % clamped edge
     L(Index.Boundary,:) = 0.;   % w = 0 on boundary, so rhs=0 here
 elseif (bcType==3) % free edge
     % all the ghost are 0. already set!
+elseif(bcType==4)
+    L(Index.Boundary,:) = 0.;   % w = 0 on boundary, so rhs=0 here
+elseif(bcType==5)
+    % all the ghost are 0. already set!
 end
 
 

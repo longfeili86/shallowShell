@@ -1,4 +1,4 @@
-function bifurcationRun(varargin)
+function bifurcationPACRun(varargin)
 % this function do the bifurcation computation for various cases
 infoPrefix='--bifurcationRun-- ';
 % default parameters
@@ -17,10 +17,10 @@ relaxFactor3=1.;
 implicitFactor1=1.; % implicitFactor only for imPicard method. 1 for fully implicit, 0 for explicit
 implicitFactor2=1.;
 implicitFactor3=1.;
-solver1='fsolve'; %solver for top branch
-solver2='fsolve'; %solver for middle branch
-solver3='fsolve'; %solver for lower branch
-resultsName='bifurcationTest';
+solver1='newton'; %solver for top branch
+solver2='newton'; %solver for middle branch
+solver3='newton'; %solver for lower branch
+resultsName='bifurcationPACTest';
 funcDefFile='bifurcationFuncDef';
 for i=1:nargin
     line = varargin{i};
@@ -69,7 +69,7 @@ end
 
 branches=['a','b','c'];
 
-getOptions=@(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsName,counter,branch,funcDefFile,ThermalLoading)...
+getOptions=@(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsName,counter,branch,funcDefFile)...
         {'-case=coupledSystem',...
          '-nonlinear',...
          '-saveIC',...
@@ -84,93 +84,67 @@ getOptions=@(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsN
          sprintf('-maxIter=%i',maxIter),...
          sprintf('-f=%s%i%c',resultsName,counter,branch),...
          sprintf('-funcDefFile=%s',funcDefFile),...
-         sprintf('-xi=%e',ThermalLoading)
          };
 
 
 % 1st branch (top): from xiMax -> xiMin with step -dxi
 counter=0;
-ThermalLoading=xiMax-dxi*counter;
+ds=dxi;
+%ThermalLoading=xiMax-dxi*counter;
 exitflag=1;
 b=1;
-while(ThermalLoading>xiMin && exitflag>0)
-    ThermalLoading=xiMax-dxi*counter;
+xi=xiMax;
+while(xi>=xiMin && exitflag>0)
     counter=counter+1;
-    options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
+    options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
+
     if(counter>2) % use two previous results as initial guess
         options=[options,...
             {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
-            sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b)))}...
-            ];
-    end
-    printCmd(options);
-    exitflag = runShell(options{:});
-    if(exitflag<=0)
-        % this run is not valid. Do not count it and rm the results dir
-        resultDir=sprintf('%s%i%c',resultsName,counter,branches(b));
-        fprintf('%sThis run is not valid. Do not count it and rm the results dir: %s\n',infoPrefix,resultDir)
-        rmdir(resultDir,'s');
-        counter=counter-1; 
-    end
-end
-%xiMin=ThermalLoading; % replace xiMin to where the top branch stopped
-
-nTop=counter;
-xiTop=ThermalLoading;
-
-
-% 2nd branch (middle): from xiMin -> xiMax with step dxi
-counter=0;
-ThermalLoading=xiMin+dxi*counter;
-exitflag=1;
-b=2;
-while(ThermalLoading<xiMax && exitflag>0)
-    ThermalLoading=xiMin+dxi*counter;
-    counter=counter+1;
-    options=getOptions(solver2,implicitFactor2,relaxFactor2,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
-    if(counter>2) % use two previous results as initial guess
-        options=[options,...
-            {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
-            sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b)))}...
-            ];
-    end
-    printCmd(options);
-    exitflag = runShell(options{:});
-    if(exitflag<=0)
-        % this run is not valid. Do not count it and rm the results dir
-        resultDir=sprintf('%s%i%c',resultsName,counter,branches(b));
-        fprintf('%sThis run is not valid. Do not count it and rm the results dir: %s\n',infoPrefix,resultDir)
-        rmdir(resultDir,'s');
-        counter=counter-1; 
-    end
-
-end
-nMiddle=counter;
-xiMiddle=ThermalLoading;
-
-
-% 3rd branch (lower): from xiMin -> xiMax with step dxi
-load(sprintf('%s%i%c/results.mat',resultsName,nTop,branches(1)),'x','xi');
-x0=-x; % use the negative results of the top branch as the initial guess for the lower branch
-dlmwrite('bifurIC3.dat',x0);
-
-xiMin=xi; % xiMin is where the top branch stopped
-counter=0;
-ThermalLoading=xiMin+dxi*counter;
-exitflag=1;
-b=3;
-
-while(ThermalLoading<xiMax && exitflag>0)
-    ThermalLoading=xiMin+dxi*counter;
-    counter=counter+1;
-    options=getOptions(solver3,implicitFactor3,relaxFactor3,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile,ThermalLoading);
-    if(counter>2) % use two previous results as initial guess
-        options=[options,...
-            {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
-            sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b)))}...
+             sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b)))},...
+             sprintf('-ds=%e',ds),...
+             '-usePAC'...
             ];
     else
-        options=[options,{'-readICFile=bifurIC3'}]; % use ic saved in file
+        ThermalLoading=xiMax-dxi*(counter-1);   
+        options=[options,sprintf('-xi=%e',ThermalLoading)];
+    end
+    printCmd(options);
+    exitflag = runShell(options{:});
+    if(exitflag<=0)
+        % this run is not valid. Do not count it and rm the results dir
+        resultDir=sprintf('%s%i%c',resultsName,counter,branches(b));
+        fprintf('%sThis run is not valid. Do not count it and rm the results dir: %s\n',infoPrefix,resultDir)
+        rmdir(resultDir,'s');
+        counter=counter-1;
+        continue;
+    end
+    load(sprintf('%s%i%c/results.mat',resultsName,counter,branches(b)),'xi');
+end
+
+% 2nd branch: from xiMin -> xiMax with step dxi
+counter=0;
+ds=dxi;
+exitflag=1;
+b=2;
+xi=xiMin;
+reduceTimes=0; % counting reduce times.
+reduceMax=10; % max number of time allowed to reduce ds;
+counterReduced=-999; % counter for the number of computations using reduced ds. if negative, means ds is not reduced
+while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
+    counter=counter+1;
+    options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
+
+    if(counter>2) % use two previous results as initial guess
+        options=[options,...
+            {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
+             sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b)))},...
+             sprintf('-ds=%e',ds),...
+             '-usePAC'...
+            ];
+    else
+        ThermalLoading=xiMin+dxi*(counter-1);   
+        options=[options,sprintf('-xi=%e',ThermalLoading)];
     end
     printCmd(options);
     exitflag = runShell(options{:});
@@ -180,17 +154,30 @@ while(ThermalLoading<xiMax && exitflag>0)
         fprintf('%sThis run is not valid. Do not count it and rm the results dir: %s\n',infoPrefix,resultDir)
         rmdir(resultDir,'s');
         counter=counter-1; 
+        if(exitflag==0) % maxIter reached try reduce ds by half
+            ds=ds/2;
+            fprintf('$^&*&^$^&* reducing ds to %e\n',ds);
+            pause(0.1);
+            exitflag=1;  % change exitflag so we can continue the iteration with smaller ds
+            reduceTimes=reduceTimes+1;
+            counterReduced=0; % start counting the number of computatations using reduced ds
+        end
+        continue;
     end
+    if(counterReduced>=0)
+        counterReduced=counterReduced+1;
+    end
+    if(counterReduced>5)
+        reduceTimes=reduceTimes-1;
+        ds=ds*2; % gradually going back to original ds
+        if(ds==dxi)
+            counterReduced=-999; % ds is now back to original
+            reduceTimes=0;
+        end
+    end
+    load(sprintf('%s%i%c/results.mat',resultsName,counter,branches(b)),'xi');
 end
-nLower=counter;
-xiLower=ThermalLoading;
 
-fprintf('%sTop branch stopped at xi=%e\n',infoPrefix,xiTop);
-fprintf('%sNumber results=%i\n',infoPrefix,nTop);
-fprintf('%sMiddle branch stopped at xi=%e\n',infoPrefix,xiMiddle);
-fprintf('%sNumber results=%i\n',infoPrefix,nMiddle);
-fprintf('%sLower branch stopped at xi=%e\n',infoPrefix,xiLower);
-fprintf('%sNumber results=%i\n',infoPrefix,nLower);
 
 if(isPlot)
     plotBifurcation(strcat('-f=',resultsName),'-color=b','-distBranch','-showIC');

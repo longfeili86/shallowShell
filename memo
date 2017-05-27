@@ -21,6 +21,16 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+05/26/2017: try feed in picard solution to newton as ic to see if newton works for the nonuniform TL case for bcTypes=3,4,5
+
+% exPicard
+runShell -case=coupledSystem -nonlinear -saveIC -solver=exPicard -tol=1e-3 -bcType=4 -nx=40 -ny=40 -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=testResults
+
+% newton readIC from picard results
+runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1e-3 -bcType=4 -nx=40 -ny=40 -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=testResultsNewton -readICResult1=testResults
+
 05/22/2017: call batchRun to generate all results:
 batchRun.pl -run=convRate > batchRunConvRate.log
 batchRun.pl -run=bifurcation > batchRunBifurcation.log

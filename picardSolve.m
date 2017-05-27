@@ -117,7 +117,7 @@ end
 
 x=xSol(:,new); % solution (could be unconverged)
 %get fval so we can compare with newton or fsolve:
-fval=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,parameters);
+fval=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,Index,parameters);
 
 
 end

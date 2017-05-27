@@ -11,7 +11,8 @@ Nphi=1:n; % phi solutions
 Nw=n+1:2*n;  % w solutions
 Nlambda=2*n+1:2*n+3; % lambda solutions
 
-res=max(abs(x([Nphi,Nw],new)-x([Nphi,Nw],cur)));
+%res=max(abs(x([Nphi,Nw],new)-x([Nphi,Nw],cur)));
+res=max(abs(x(:,new)-x(:,cur)));
 isConverged=false;
 if(res<tol)
    isConverged=true; 

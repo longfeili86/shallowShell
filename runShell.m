@@ -78,6 +78,11 @@ parameters.D=1.; % D = Eh^3/(12(1-nu^2)), we specify it for now
 
 % thermal loading
 parameters.xi=0.;
+
+% 20170523: parameters for Pseudo-Acrlength Continuation (PAC) method
+% If true, we will adjoin to the coupled system a scalar normalization eqautin 
+parameters.usePAC=false;
+parameters.ds = 0.; % arclength increment
 %---------------------------------------------------
 
 % read command line args
@@ -149,6 +154,10 @@ for i=1:nargin
         parameters.h=sscanf(line,'-h=%e');   
     elseif(strncmp(line,'-xi=',4))
         parameters.xi=sscanf(line,'-xi=%e'); % read in thermal loading 
+    elseif(strcmp(line,'-usePAC')) 
+        parameters.usePAC=true;
+    elseif(strncmp(line,'-ds=',4)) 
+        parameters.ds=sscanf(line,'-ds=%e');
     end  
 end
 

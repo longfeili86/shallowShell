@@ -1,9 +1,10 @@
-function problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,parameters)
+function problem=setupFSolveProblem(myGrid,Index,mtx,RHSphi,RHSw,R,W0,x0,n,parameters,xOld,dx)
 % this function setup the problem for fsolve
 % input: 
 %   x0 is the initial guess for both phi and w
 %
 % -- Longfei Li
+
 
 bcType=parameters.bcType;
 tol=parameters.tol;
@@ -22,7 +23,7 @@ end
 problem.options = optimoptions('fsolve','Display','iter-detailed',...
     'Algorithm', 'trust-region-dogleg','TolX',tol,'TolFun',tol,...
     'Jacobian','on','MaxIter',maxIter); % we know how to compute Jacobiam now. So turn it on
-problem.objective = @(x) fsolveFun(x,n,W0,Aphi,Aw,mtx,Index,RHSphi,RHSw,R,parameters);
+problem.objective = @(x) fsolveFun(x,n,W0,Aphi,Aw,mtx,Index,RHSphi,RHSw,R,parameters,xOld,dx);
 problem.x0 = x0;
 problem.solver = 'fsolve';
 
