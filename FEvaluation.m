@@ -29,8 +29,17 @@ end
 % to the phi eqn and an additional normalization equation
 if(parameters.usePAC)
     ds=parameters.ds;
-    vxi(1:length(Nphi),1)=x(end); % we need add to vxi to each of phi eqautions 
-    vxi=assignBoundaryConditionsRHS(vxi,Index,parameters); 
+    vxi(1:length(Nphi),1)=x(end); % we need add to vxi to each of phi eqautions
+    bcTypeSaved=parameters.bcType; % save bcType
+    if(parameters.bcType==3 || parameters.bcType==5)
+    % for free bc and CF bc, the phi eqn uses the clamped bc: phi=dphidn=0
+    % so we overwrite the bcType value here to reuse
+    % the assignBoundaryConditionsRHS fucntion for the phi eqn as well
+        parameters.bcType=2; 
+    end
+    vxi=assignBoundaryConditionsRHS(vxi,Index,parameters);
+    parameters.bcType=bcTypeSaved; % reset bcType to saved value
+
     F(Nphi,1)= F(Nphi,1)+vxi;
     nE=length(F); % number of equations
     F(nE+1,1)= dx'*(x-xOld)-ds;

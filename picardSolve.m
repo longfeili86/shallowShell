@@ -1,4 +1,4 @@
-function [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R)
+function [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R,xOld,dx)
 % solve the coupled problem using picard iteration methods
 % Input: Wi is the initial guess
 % -- Longfei Li
@@ -11,7 +11,7 @@ maxIter=parameters.maxIter;
 tol=parameters.tol;
 useLU=parameters.useLU;
 solver=parameters.solver;
-
+usePAC=parameters.usePAC; 
 % new: we add implicitFactor to combine exPicard and imPicard
 implicitFactor=parameters.implicitFactor;
 
@@ -24,6 +24,9 @@ Nlambda=2*n+1:2*n+3; % lambda solutions
 nadd=0; % number of additional variables
 if(bcType==3)
     nadd=3;
+end
+if(usePAC)
+    nadd=nadd+1; 
 end
 xSol=zeros(2*n+nadd,numberOfLevels); % holder for solutions
 
@@ -61,11 +64,25 @@ while(~isConverged && step<=maxIter)
     [prev2,prev,cur,new] = step2IterLevels(step); %shift index
     
     % solve phi equation 
+    Rphi=RHSphi(xSol(Nw,cur),xSol(Nphi,cur));
+    if(usePAC)
+        vxi(1:length(Nphi),1)=xSol(end,cur); % we need add to cur vxi to each of phi eqautions
+        bcTypeSaved=parameters.bcType; % save bcType
+        if(parameters.bcType==3 || parameters.bcType==5)
+            % for free bc and CF bc, the phi eqn uses the clamped bc: phi=dphidn=0
+            % so we overwrite the bcType value here to reuse
+            % the assignBoundaryConditionsRHS fucntion for the phi eqn as well
+            parameters.bcType=2; 
+        end
+        vxi=assignBoundaryConditionsRHS(vxi,Index,parameters);
+        parameters.bcType=bcTypeSaved; % reset bcType to saved value
+        Rphi=Rphi-vxi; % add current xi to Rphi 
+    end
     if(useLU)
         y=Lphi\RHSphi(xSol(Nw,cur),xSol(Nphi,cur));
         xSol(Nphi,new)=Uphi\y;
     else
-        xSol(Nphi,new)=Aphi\RHSphi(xSol(Nw,cur),xSol(Nphi,cur));
+        xSol(Nphi,new)=Aphi\Rphi;
     end
     
     % solve w equation
@@ -91,6 +108,14 @@ while(~isConverged && step<=maxIter)
     if(bcType==3)
        xSol(Nlambda,new) = xTemp(n+1:n+3); 
     end
+    
+    if(usePAC) % we need to solve the normalizeiton equation
+        ds=parameters.ds;
+        xSol(2*n+nadd,new)=(ds-dx(1:end-1)'*(xSol(1:end-1,new)-xOld(1:end-1)))/dx(end)+xOld(end);
+        %fprintf('--debug-- xSol(end,new)=%e and xSol(end,cur)=%e\n',xSol(end,new),xSol(end,cur));
+    end
+    
+    
     tStep(step)=toc(tStart);
     [isConverged,res,p(step)]=checkConvergence(step,tol,xSol,n,tStep(step));
     if(isConverged==-9999)
@@ -117,7 +142,7 @@ end
 
 x=xSol(:,new); % solution (could be unconverged)
 %get fval so we can compare with newton or fsolve:
-fval=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,Index,parameters);
+fval=FEvaluation(x,n,Aphi,Aw,RHSphi,RHSw,R,Index,parameters,xOld,dx);
 
 
 end

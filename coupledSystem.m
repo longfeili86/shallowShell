@@ -184,7 +184,7 @@ if(strcmp(solver,'fsolve'))
 elseif(strcmp(solver,'newton'))
     [x,fval,exitflag,output]=newtonSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R,xOld,dx); % newton solve
 elseif(strcmp(solver,'imPicard') || strcmp(solver,'exPicard'))
-    [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R); % picard solve
+    [x,fval,exitflag,output]=picardSolve(n,x0,W0,Index,mtx,parameters,myGrid,RHSphi,RHSw,R,xOld,dx); % picard solve
 else
     fprintf('%sError unknown solver: %s\n',infoPrefix,solver);
     return

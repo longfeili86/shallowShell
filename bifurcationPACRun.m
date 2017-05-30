@@ -11,15 +11,10 @@ xiMax=0.;
 dxi=100;
 maxIter=100;
 tol=1e-6;
-relaxFactor1=1.; % relaxation only implemented for newton. This value won't be seen by other methods
-relaxFactor2=1.;
-relaxFactor3=1.;
-implicitFactor1=1.; % implicitFactor only for imPicard method. 1 for fully implicit, 0 for explicit
-implicitFactor2=1.;
-implicitFactor3=1.;
-solver1='newton'; %solver for top branch
-solver2='newton'; %solver for middle branch
-solver3='newton'; %solver for lower branch
+relaxFactor=1.; % relaxation only implemented for newton. This value won't be seen by other methods
+implicitFactor=1.; % implicitFactor only for imPicard method. 1 for fully implicit, 0 for explicit
+
+solver='newton'; %solver for top branch
 resultsName='bifurcationPACTest';
 funcDefFile='bifurcationFuncDef';
 for i=1:nargin
@@ -42,24 +37,12 @@ for i=1:nargin
         maxIter=sscanf(line,'-maxIter=%i');
     elseif(strncmp(line,'-tol=',5))
         tol=sscanf(line,'-tol=%e'); 
-    elseif(strncmp(line,'-relaxFactor1=',13))
-        relaxFactor1=sscanf(line,'-relaxFactor1=%e');
-    elseif(strncmp(line,'-relaxFactor2=',13))
-        relaxFactor2=sscanf(line,'-relaxFactor2=%e');
-    elseif(strncmp(line,'-relaxFactor3=',13))
-        relaxFactor3=sscanf(line,'-relaxFactor3=%e');     
-    elseif(strncmp(line,'-implicitFactor1=',16))
-        implicitFactor1=sscanf(line,'-implicitFactor1=%e'); 
-    elseif(strncmp(line,'-implicitFactor2=',16))
-        implicitFactor2=sscanf(line,'-implicitFactor2=%e');  
-    elseif(strncmp(line,'-implicitFactor3=',16))
-        implicitFactor3=sscanf(line,'-implicitFactor3=%e');    
-    elseif(strncmp(line,'-solver1=',9))
-        solver1=line(10:end);
-    elseif(strncmp(line,'-solver2=',9))
-        solver2=line(10:end);
-    elseif(strncmp(line,'-solver3=',9))
-        solver3=line(10:end);
+    elseif(strncmp(line,'-relaxFactor=',13))
+        relaxFactor=sscanf(line,'-relaxFactor=%e');     
+    elseif(strncmp(line,'-implicitFactor=',16))
+        implicitFactor=sscanf(line,'-implicitFactor=%e');    
+    elseif(strncmp(line,'-solver=',8))
+        solver=line(9:end);
     elseif(strncmp(line,'-results=',9))
         resultsName=line(10:end);
     elseif(strncmp(line,'-funcDefFile=',13))
@@ -96,7 +79,7 @@ b=1;
 xi=xiMax;
 while(xi>=xiMin && exitflag>0)
     counter=counter+1;
-    options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
+    options=getOptions(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
 
     if(counter>2) % use two previous results as initial guess
         options=[options,...
@@ -121,6 +104,7 @@ while(xi>=xiMin && exitflag>0)
     end
     load(sprintf('%s%i%c/results.mat',resultsName,counter,branches(b)),'xi');
 end
+nTop=counter;
 
 % 2nd branch: from xiMin -> xiMax with step dxi
 counter=0;
@@ -134,12 +118,12 @@ counterReduced=-999; % counter for the number of computations using reduced ds. 
 reduceFactor=10;
 while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
     counter=counter+1;
-    options=getOptions(solver1,implicitFactor1,relaxFactor1,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
+    options=getOptions(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsName,counter,branches(b),funcDefFile);
 
     if(counter>2) % use two previous results as initial guess
         options=[options,...
-            {sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
-             sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b)))},...
+             sprintf('-readICResult1=%s',sprintf('%s%i%c',resultsName,counter-1,branches(b))),...
+             sprintf('-readICResult2=%s',sprintf('%s%i%c',resultsName,counter-2,branches(b))),...
              sprintf('-ds=%e',ds),...
              '-usePAC'...
             ];
@@ -157,7 +141,7 @@ while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
         counter=counter-1; 
         if(exitflag==0) % maxIter reached try reduce ds by half
             ds=ds/reduceFactor;
-            fprintf('$^&*&^$^&* reducing ds to %e\n',ds);
+            fprintf('%sreducing ds to %e\n',infoPrefix,ds);
             pause(0.1);
             exitflag=1;  % change exitflag so we can continue the iteration with smaller ds
             reduceTimes=reduceTimes+1;

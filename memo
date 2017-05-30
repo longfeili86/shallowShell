@@ -20,6 +20,11 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+05/30/2017: rerun all the cases after bugs fixed for the free and cf bcs:
+batchRun.pl -run=bifurcationPAC > batchRunBifurcationPAC.log
+
+
+
 05/27 /2017: Pseudo-Arclength Continuation (PAC) method with dynamics choice of ds is working now. Need more test. 
 use bifurcationPACRun -dxi=50 -bcType=1 ... to test the PAC method. So far seems working for byType=1,2,4
 
@@ -35,6 +40,7 @@ runShell -case=coupledSystem -nonlinear -saveIC -solver=newton -tol=1e-3 -bcType
 05/22/2017: call batchRun to generate all results:
 batchRun.pl -run=convRate > batchRunConvRate.log
 batchRun.pl -run=bifurcation > batchRunBifurcation.log
+batchRun.pl -run=bifurcationPAC > batchRunBifurcationPAC.log
 batchRun.pl -run=nonuniformTL -solver=fsolve > batchRunNonuniformTLFsolve.log
 batchRun.pl -run=nonuniformTL -solver=newton > batchRunNonuniformTLNewton.log
 batchRun.pl -run=nonuniformTL -solver=exPicard > batchRunNonuniformTLExPicard.log

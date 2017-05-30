@@ -52,16 +52,29 @@ if(~parameters.isLinear)
     Jww(1:n,1:n) = Jww(1:n,1:n)-Lphi;
 end
 
+bcTypeSaved=parameters.bcType; % save bcType
+if(parameters.bcType==3 || parameters.bcType==5)
+% for free bc and CF bc, the phi eqn uses the clamped bc: phi=dphidn=0
+% so we overwrite the bcType value here to reuse
+% the assignBoundaryConditionsLMatrix fucntion for the phi eqn as well
+    parameters.bcType=2; 
+end
+Jpw=assignBoundaryConditionsLMatrix(Jpw,Index,parameters);
+
 J = [Jpp,Jpw;
      Jwp,Jww];
  
 % augment J for PAC method 
 if(parameters.usePAC) 
     Lpx = ones(n,1); % xi derivatives of phi eqns
+
     Lpx=assignBoundaryConditionsLMatrix(Lpx,Index,parameters); 
+
     J = [J,[Lpx;zeros(n+nadd,1)];
          dx'];
 end
+
+parameters.bcType=bcTypeSaved; % reset bcType to saved value
 
  
 
