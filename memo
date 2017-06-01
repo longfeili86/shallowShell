@@ -22,7 +22,7 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 05/30/2017: rerun all the cases after bugs fixed for the free and cf bcs:
 batchRun.pl -run=bifurcationPAC > batchRunBifurcationPAC.log
-
+batchRun.pl -run=bifurcation > batchRunBifurcation.log
 
 
 05/27 /2017: Pseudo-Arclength Continuation (PAC) method with dynamics choice of ds is working now. Need more test. 

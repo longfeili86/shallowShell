@@ -73,7 +73,7 @@ getOptions=@(solver,implicitFactor,relaxFactor,tol,bcType,nx,ny,maxIter,resultsN
 % 1st branch (top): from xiMax -> xiMin with step -dxi
 counter=0;
 ds=dxi;
-%ThermalLoading=xiMax-dxi*counter;
+implicitFactor=0.; % always use explicit picard for top curve
 exitflag=1;
 b=1;
 xi=xiMax;
@@ -107,6 +107,7 @@ end
 nTop=counter;
 
 % 2nd branch: from xiMin -> xiMax with step dxi
+implicitFactor=1.;
 counter=0;
 ds=dxi;
 exitflag=1;
@@ -142,10 +143,13 @@ while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
         if(exitflag==0) % maxIter reached try reduce ds by half
             ds=ds/reduceFactor;
             fprintf('%sreducing ds to %e\n',infoPrefix,ds);
-            pause(0.1);
             exitflag=1;  % change exitflag so we can continue the iteration with smaller ds
             reduceTimes=reduceTimes+1;
             counterReduced=0; % start counting the number of computatations using reduced ds
+            if(reduceTimes==reduceMax && strcmp(solver,'imPicard') && implicitFactor>0)
+                implicitFactor=0.;
+                reduceTimes=reduceTimes-1;
+            end
         end
         continue;
     end
@@ -155,9 +159,8 @@ while(xi>=xiMin && exitflag>0 && reduceTimes<reduceMax)
     if(counterReduced>5)
         reduceTimes=reduceTimes-1;
         ds=ds*reduceFactor; % gradually going back to original ds
-        if(ds==dxi)
+        if(reduceTimes==0)
             counterReduced=-999; % ds is now back to original
-            reduceTimes=0;
         end
     end
     load(sprintf('%s%i%c/results.mat',resultsName,counter,branches(b)),'xi');

@@ -35,22 +35,22 @@ print("$run\n");
 $nx=320; 
 $ny=320;
 @bifCmds= (
-    "bifurcationRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExSupported",
-    "bifurcationRun -noplot -bcType=2 -xiMin=-8000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExClamped",
-    "bifurcationRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExFree",
-    "bifurcationRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCS",
-    "bifurcationRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCF"
+    "bifurcationRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExSupported",
+    "bifurcationRun -noplot -bcType=2 -xiMin=-6000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExClamped",
+    "bifurcationRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExFree",
+    "bifurcationRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCS",
+    "bifurcationRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExCF"
 );
 
 # bifurcation PAC commands
 $nx=320; 
 $ny=320;
 @bifPACCmds= (
-    "bifurcationPACRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonSupported",
-    "bifurcationPACRun -noplot -bcType=2 -xiMin=-8000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonClamped",
-    "bifurcationPACRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonFree",
-    "bifurcationPACRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonCS",
-    "bifurcationPACRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=200 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonCF"
+    "bifurcationPACRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonSupported",
+    "bifurcationPACRun -noplot -bcType=2 -xiMin=-6000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonClamped",
+    "bifurcationPACRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonFree",
+    "bifurcationPACRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonCS",
+    "bifurcationPACRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonCF"
 );
 
 # non-uniform thermal loading
