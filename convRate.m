@@ -55,7 +55,7 @@ if(strcmp(caseName,'coupledSystem'))
         linearity='Linear';
     end
     resultsDir=@(i,bcType,testName) sprintf('%s%s%s%sG%i',solver,linearity,testName,bcNames{bcType},gn(i));
-    bcTypes=setdiff(bcTypes,3); % free bc needs more resolution. We deal it separately
+    %bcTypes=setdiff(bcTypes,3); % free bc needs more resolution. We deal it separately
 else
     resultsDir=@(i,bcType,testName) sprintf('%s%sG%i',testName,bcNames{bcType},gn(i));
 end
