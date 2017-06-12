@@ -10,20 +10,28 @@ $rStart=1;
 $rEnd=6;
 $run="convRate"; #convRate or bifurcation
 $solver="";
+$nx=320; 
+$ny=320;
 
-GetOptions('rStart=i'=>\$rStart,'rEnd=i'=>\$rEnd,'run=s'=>\$run,'solver=s'=>\$solver);
+GetOptions('rStart=i'=>\$rStart,'rEnd=i'=>\$rEnd,'run=s'=>\$run,'solver=s'=>\$solver,'nx=i'=>\$nx,'ny=i'=>\$ny);
 print("$run\n");
 
 # convRate commands
-@convCmds = (
+@convBiharmCmds = (
     #biharmonic conv test
     "convRate -case=biharmonic -test=biharmTrigTest -run -noplot -rStart=$rStart -rEnd=$rEnd",
-    "convRate -case=biharmonic -test=biharmPolyTest -run -noplot -rStart=$rStart -rEnd=$rEnd",
+    "convRate -case=biharmonic -test=biharmPolyTest -run -noplot -rStart=$rStart -rEnd=$rEnd"
+    );
+
+@convNonlinearCmds=(
     #nonlinear coupled system conv test
     "convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
     "convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
     "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
-    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
+    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear"
+    );
+
+@convLinearCmds=(
     #linear coupled system conv test
     "convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd",
     "convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd",
@@ -32,8 +40,7 @@ print("$run\n");
     );
 
 # bifurcation commands
-$nx=320; 
-$ny=320;
+
 @bifCmds= (
     "bifurcationRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExSupported",
     "bifurcationRun -noplot -bcType=2 -xiMin=-6000 -dxi=50 -maxIter=100 -tol=1e-6 -nx=$nx -ny=$ny -solver1=exPicard -solver2=imPicard -solver3=exPicard -results=bifurcationExImExClamped",
@@ -43,19 +50,17 @@ $ny=320;
 );
 
 # bifurcation PAC commands
-$nx=320; 
-$ny=320;
+$gn=$nx/10;
 @bifPACCmds= (
-    "bifurcationPACRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonSupported",
-    "bifurcationPACRun -noplot -bcType=2 -xiMin=-6000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonClamped",
-    "bifurcationPACRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonFree",
-    "bifurcationPACRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonCS",
-    "bifurcationPACRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=10 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonCF"
+    "bifurcationPACRun -noplot -bcType=1 -xiMin=-2000 -dxi=50 -maxIter=30 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonG${gn}Supported",
+    "bifurcationPACRun -noplot -bcType=2 -xiMin=-6000 -dxi=50 -maxIter=30 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonG${gn}Clamped",
+    "bifurcationPACRun -noplot -bcType=3 -xiMin=-3000 -dxi=50 -maxIter=30 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonG${gn}Free",
+    "bifurcationPACRun -noplot -bcType=4 -xiMin=-3500 -dxi=50 -maxIter=30 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonG${gn}CS",
+    "bifurcationPACRun -noplot -bcType=5 -xiMin=-4000 -dxi=50 -maxIter=30 -tol=1e-6 -nx=$nx -ny=$ny -solver=newton -results=bifurcationPACnewtonG${gn}CF"
 );
 
 # non-uniform thermal loading
-$nx=320;
-$ny=320;
+
 @nonuniformTLCmds=(
 "runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=1 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLSupported_$solver",
 "runShell -noplot -case=coupledSystem -nonlinear -saveIC -solver=$solver -tol=1e-6 -bcType=2 -nx=$nx -ny=$ny -maxIter=100 -funcDefFile=coupledSystemNonUniformTLFuncDef -f=nonuniformTLClamped_$solver",
@@ -70,9 +75,19 @@ $ny=320;
 
 $counter=0;
 @cmds;
-if($run eq "convRate")
+if($run eq "convRateBiharm")
 {
-    @cmds=@convCmds;
+    @cmds=@convBiharmCmds;
+    
+}
+elsif($run eq "convRateNonlinear")
+{
+    @cmds=@convNonlinearCmds;
+    
+}
+elsif($run eq "convRateLinear")
+{
+    @cmds=@convLinearCmds;
     
 }
 elsif($run eq "bifurcation")

@@ -20,10 +20,21 @@ viewProfile -f=testResults
 convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-05/30/2017: rerun all the cases after bugs fixed for the free and cf bcs:
-batchRun.pl -run=bifurcationPAC > batchRunBifurcationPAC.log
-batchRun.pl -run=bifurcation > batchRunBifurcation.log
+06/07/2017:
+batchRun.pl -run=nonuniformTL -solver=fsolve > batchRunNonuniformTLFsolve.log
+batchRun.pl -run=nonuniformTL -solver=newton > batchRunNonuniformTLNewton.log
+batchRun.pl -run=nonuniformTL -solver=exPicard > batchRunNonuniformTLExPicard.log
+batchRun.pl -run=nonuniformTL -solver=imPicard > batchRunNonuniformTLImPicard.log
+batchRun.pl -run=convRateBiharm > batchRunConvRateBiharm.log
+batchRun.pl -run=convRateNonlinear > batchRunConvRateNonlinear.log
+batchRun.pl -run=convRateLinear > batchRunConvRateLinear.log
+% free bc needs more resolution to converge. We therefore do it separately
+matlab -nodisplay -r 'tic;FreeBCConvRate;toc;exit;'>FreeBCConvRate.log 
 
+05/30/2017: rerun all the cases after bugs fixed for the free and cf bcs:
+batchRun.pl -run=bifurcationPAC -nx=40 -ny=40 > batchRunBifurcationPACG4.log
+batchRun.pl -run=bifurcationPAC -nx=320 -ny=320 > batchRunBifurcationPACG32.log
+batchRun.pl -run=bifurcation > batchRunBifurcation.log
 
 05/27 /2017: Pseudo-Arclength Continuation (PAC) method with dynamics choice of ds is working now. Need more test. 
 use bifurcationPACRun -dxi=50 -bcType=1 ... to test the PAC method. So far seems working for byType=1,2,4
