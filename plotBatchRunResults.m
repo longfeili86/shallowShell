@@ -13,12 +13,12 @@ convRate -case=biharmonic -test=biharmPolyTest -rStart=2 -rEnd=6;
 convRate -case=biharmonic -test=biharmTrigTest -rStart=2 -rEnd=6;
 convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -rStart=2 -rEnd=6 -nonlinear;
 convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -rStart=2 -rEnd=6 -nonlinear;
-convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=2 -rEnd=6 -nonlinear;
-convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -rStart=2 -rEnd=6 -nonlinear;
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=2 -rEnd=5 -nonlinear;
+convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -rStart=2 -rEnd=5 -nonlinear;
 convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -rStart=2 -rEnd=6;
 convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -rStart=2 -rEnd=6;
-convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=2 -rEnd=6;
-convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -rStart=2 -rEnd=6;
+convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -rStart=2 -rEnd=5;
+convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -rStart=2 -rEnd=5;
 
 close all;
 movefile('*.eps',destination);
@@ -63,13 +63,14 @@ for i=1:length(Cases)
     source=Cases{i};
     arg1=sprintf('-f=%s',source);
     
-    plotSavedResults(arg1);
+    % do contour plots only
+    %plotSavedResults(arg1);
     plotSavedResults(arg1,'-contour');
     close all;
     moveFigureInSavedResults(source,destination)
 end
 
-%%
+
 % plot bifurcation results
 setupFigure;
 colors='rbkcm';
@@ -108,13 +109,35 @@ printPlot('bifurcationPACG32');
 close all
 movefile('*.eps',destination);
 
+
+% plot bifurcation PAC results (l2 norm)
+setupFigure;
+colors='rbkcm';
+bcNames={'Supported','Clamped','Free','CS','CF'};
+hold on
+for b=1:length(bcNames)
+    hh(b)=plotBifurcation(strcat('-f=bifurcationPACnewtonG32',bcNames{b}),strcat('-color=',colors(b)),'-option=l2');
+end
+hold off
+box on
+legend(hh,bcNames,'FontSize',figOptions.FS,'Location','best');
+xlabel('$\xi$','FontSize',figOptions.FS,'Interpreter','latex') ;
+ylabel('$||w(x,y)||_2$','FontSize',figOptions.FS,'Interpreter','latex');
+xlim([-6000,0]);
+set(gca,'FontSize',figOptions.FS);
+printPlot('bifurcationPACG32_l2');
+close all
+movefile('*.eps',destination);
+
+
 %plot nonuniform thermal loading case:
 solvers={'exPicard','imPicard','newton','fsolve'};
 for k=1:length(solvers)
 for i=1:length(bcNames)
   source=strcat('nonuniformTL',bcNames{i},'_',solvers{k});
   arg1=strcat('-f=',source);
-  plotSavedResults(arg1);
+  % do contour plots only
+  %plotSavedResults(arg1);
   plotSavedResults(arg1,'-contour');
   close all
   moveFigureInSavedResults(source,destination);

@@ -17,7 +17,7 @@ isPlot=true;
 isLinear=true;
 rStart=1; % refinement start number
 rEnd=4; % refinement end number
-
+legendPosition = 'southeast' ; % legend position
 
 for i=1:nargin
     line = varargin{i};
@@ -94,9 +94,17 @@ if(isPlot)
             load(sprintf('%s/results.mat',resultsDir(i,bcType,testName)));
             wErrorL2.(bcNames{bcType})(i)=norm(WerrPlot(:),2)/sqrt(length(WerrPlot(:)));
             wErrorLmax.(bcNames{bcType})(i)=max(abs(WerrPlot(:)));
+                
             if(strcmp(caseName,'coupledSystem'))
                 phiErrorL2.(bcNames{bcType})(i)=norm(PHIerrPlot(:),2)/sqrt(length(PHIerrPlot(:)));
-                phiErrorLmax.(bcNames{bcType})(i)=max(abs(PHIerrPlot(:)));    
+                phiErrorLmax.(bcNames{bcType})(i)=max(abs(PHIerrPlot(:)));  
+                if(wErrorLmax.(bcNames{bcType})(i)>1e1 || phiErrorLmax.(bcNames{bcType})(i)>1e1)
+                     % chop off unconverged results
+                    wErrorL2.(bcNames{bcType})(i)=nan;
+                    wErrorLmax.(bcNames{bcType})(i)=nan;    
+                    phiErrorL2.(bcNames{bcType})(i)=nan;
+                    phiErrorLmax.(bcNames{bcType})(i)=nan;
+                end
             end
         end
     end  
@@ -107,7 +115,7 @@ if(isPlot)
     % Lmax convRate
     figure
     setupFigure;
-    loglog(hh,(hh).^2,'k','LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
+    loglog(hh,(hh).^2*3,'k','LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
     hold on
         counter=0;
         for bcType=bcTypes
@@ -123,12 +131,14 @@ if(isPlot)
             end
         end
     hold off
-    legend(['2nd order',lgdNames],'Location','SouthEast','FontSize',figOptions.FS,'Interpreter','Latex');
+    legend(['2nd order',lgdNames],'Location',legendPosition,'FontSize',figOptions.FS,'Interpreter','Latex');
     xlabel('grid size','FontSize',figOptions.FS) ;
     ylabel('error','FontSize',figOptions.FS) ;
     set(gca,'FontSize',figOptions.FS);
     box on
-    grid on
+    grid off
+    xlim([1e-3,10^(-0.2)]);
+    ylim([1e-6,1e1]);
     if(strcmp(caseName,'coupledSystem'))
         figName=sprintf('%s%s%sConvRateLmax.eps',solver,linearity,testName);
     else
@@ -139,7 +149,7 @@ if(isPlot)
     % L2 convRate
     figure
     setupFigure;
-    loglog(hh,(hh).^2,'k','LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
+    loglog(hh,(hh).^2*3,'k','LineWidth',figOptions.LW,'MarkerSize',figOptions.MS);
     hold on
         counter=0;
         for bcType=bcTypes
@@ -155,12 +165,14 @@ if(isPlot)
             end
         end
     hold off
-    legend(['2nd order',lgdNames],'Location','SouthEast','FontSize',figOptions.FS,'Interpreter','Latex');
+    legend(['2nd order',lgdNames],'Location',legendPosition,'FontSize',figOptions.FS,'Interpreter','Latex');
     xlabel('grid size','FontSize',figOptions.FS) ;
     ylabel('error','FontSize',figOptions.FS) ;
     set(gca,'FontSize',figOptions.FS);
     box on
-    grid on
+    grid off
+    xlim([1e-3,10^(-0.2)]);
+    ylim([1e-6,1e1]);
     if(strcmp(caseName,'coupledSystem'))
         figName=sprintf('%s%s%sConvRateL2.eps',solver,linearity,testName);
     else

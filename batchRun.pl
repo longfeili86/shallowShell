@@ -12,8 +12,9 @@ $run="convRate"; #convRate or bifurcation
 $solver="";
 $nx=320; 
 $ny=320;
+$serial=0;
 
-GetOptions('rStart=i'=>\$rStart,'rEnd=i'=>\$rEnd,'run=s'=>\$run,'solver=s'=>\$solver,'nx=i'=>\$nx,'ny=i'=>\$ny);
+GetOptions('rStart=i'=>\$rStart,'rEnd=i'=>\$rEnd,'run=s'=>\$run,'solver=s'=>\$solver,'nx=i'=>\$nx,'ny=i'=>\$ny,'serial=i'=>\$serial);
 print("$run\n");
 
 # convRate commands
@@ -27,16 +28,16 @@ print("$run\n");
     #nonlinear coupled system conv test
     "convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
     "convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
-    "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear",
-    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd -nonlinear"
+    "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=5 -nonlinear",
+    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=5 -nonlinear"
     );
 
 @convLinearCmds=(
     #linear coupled system conv test
     "convRate -case=coupledSystem -solver=exPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd",
     "convRate -case=coupledSystem -solver=imPicard -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd",
-    "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd",
-    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=$rEnd"
+    "convRate -case=coupledSystem -solver=fsolve -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=5",
+    "convRate -case=coupledSystem -solver=newton -test=coupledSystemTest -run  -noplot -rStart=$rStart -rEnd=5"
     );
 
 # bifurcation commands
@@ -114,7 +115,16 @@ foreach(@cmds)
     $counter++;
     $cmd="matlab -nodisplay -r \'tic;".$_.";toc;exit;\'>$run$counter.log";
     print("$cmd\n");
-    push @thr,threads->create('msc', $cmd);
+    if($serial==0)
+    {# run in multithreads
+	#print("multithreads\n");
+	push @thr,threads->create('msc', $cmd);
+    }
+    else 
+    {# run in serial
+	#print("serial\n");
+	system($cmd);
+    }
 }
 
 

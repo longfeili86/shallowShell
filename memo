@@ -22,7 +22,13 @@ convRate -case=<caseName> -test=<testName>  (optional -run -noplot)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 06/12/2017:
 rerun with Free bc (convRate is modified to include free bc)
+add a serial option for batchRun so that all the cads are run one by one instead of at the same time.
+Not enough memory to do all at once. 
+
+fsolve and newton will be out of memmory for G64 with free bc
+
 batchRun.pl -run=convRateLinear > batchRunConvRateLinear.log
+batchRun.pl -run=convRateNonlinear > batchRunConvRateNonlinear.log
 
 
 06/07/2017:
@@ -31,8 +37,8 @@ batchRun.pl -run=nonuniformTL -solver=newton > batchRunNonuniformTLNewton.log
 batchRun.pl -run=nonuniformTL -solver=exPicard > batchRunNonuniformTLExPicard.log
 batchRun.pl -run=nonuniformTL -solver=imPicard > batchRunNonuniformTLImPicard.log
 batchRun.pl -run=convRateBiharm > batchRunConvRateBiharm.log
-batchRun.pl -run=convRateNonlinear > batchRunConvRateNonlinear.log
-batchRun.pl -run=convRateLinear > batchRunConvRateLinear.log
+batchRun.pl -run=convRateNonlinear > batchRunConvRateNonlinear.log (redo this, G64 for free is OOM)
+batchRun.pl -run=convRateLinear > batchRunConvRateLinear.log (redo this, G64 for free is OOM)
 
 
 05/30/2017: rerun all the cases after bugs fixed for the free and cf bcs:

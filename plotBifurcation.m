@@ -10,6 +10,7 @@ savePlot=false;
 showIC=false;
 distBranch=false;
 color='b';
+option='center'; % center point or l2 norm %plot the bifucation for the center point or l2 norm
 
 if(nargin==0)
     fprintf('Usage: plotBifurcation -f=<resultsName> (optional: -showIC -distBranch -color=<r> -savePlot)\n');
@@ -28,10 +29,14 @@ for i=1:nargin
         distBranch=true;
     elseif(strncmp(line,'-color=',7))
         color=sscanf(line,'-color=%c');
+    elseif(strncmp(line,'-option=',8))
+        option=sscanf(line,'-option=%s');
     end
 end
 
-
+if(~strcmp(option,'center') && ~strcmp(option,'l2'))
+    option='center'; % use center for unknonw options.
+end
 branchShapes='+>*';
 branchNames='abc';
 setupFigure;
@@ -45,9 +50,15 @@ for b=1:3 % branches
         results=sprintf('%s/results.mat',Dirs(i).name);
         load(results);
         [nx,ny]=size(Wplot);
-        wc(i)=Wplot(nx/2,ny/2);
-        wi(i)=Wiplot(nx/2,ny/2); % ic    
-        Xi(i)=xi;
+        Xi(i)=xi; % values for xi
+        if(strcmp(option,'center'))
+            wc(i)=Wplot(nx/2,ny/2);
+            wi(i)=Wiplot(nx/2,ny/2); % ic    
+        else
+            wc(i)=sqrt(sum(Wplot(:).^2)/(nx*ny)); % l2 norm
+            wi(i)=sqrt(sum(Wiplot(:).^2)/(nx*ny)); % ic  l2 norm  
+        end
+        
     end
     brachShape=branchShapes(1);
     if(distBranch)
@@ -62,6 +73,9 @@ end
 hold off
 
 % save eps file
+if strcmp(option,'l2')
+    resultsName=strcat(resultsName,'_l2');
+end
 if(savePlot)
     figName=sprintf('%s',resultsName);
     printPlot(figName);
